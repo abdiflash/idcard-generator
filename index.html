@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ID Card Generator Studio</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- SheetJS (Excel Parser) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- JsBarcode -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --panel-bg: #1e293b;
+            --primary-blue: #3b82f6;
+            --primary-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-dark); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+
+        header {
+            background: var(--panel-bg);
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { font-size: 20px; font-weight: 700; color: var(--primary-blue); }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 360px 1fr 400px;
+            gap: 20px;
+            padding: 20px;
+            flex: 1;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+        select, input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 13px;
+        }
+
+        /* Portrait Camera Container */
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 280px;
+            height: 370px;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 0 auto;
+            border: 2px solid var(--border-color);
+        }
+
+        #webcamVideo { width: 100%; height: 100%; object-fit: cover; }
+        
+        .crop-guide {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 190px;
+            height: 250px;
+            border: 2px dashed var(--success);
+            border-radius: 8px;
+            pointer-events: none;
+            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65);
+        }
+
+        .crop-guide.circle {
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+        }
+
+        .btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary { background: var(--primary-blue); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Student List */
+        .student-list {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 250px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: #0f172a;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        .student-item {
+            padding: 10px;
+            border-radius: 6px;
+            background: #1e293b;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            border: 1px solid transparent;
+        }
+        .student-item:hover, .student-item.selected {
+            border-color: var(--primary-blue);
+            background: #334155;
+        }
+        .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+        .badge-done { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+        .badge-pending { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+        /* Preview Area */
+        .preview-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+        #cardPreview img, canvas#cardCanvas {
+            max-width: 100%;
+            max-height: 600px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        #statusBox {
+            font-size: 11px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--primary-blue);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🆔 ID Card Generator Studio</h1>
+        <div id="statusBox">Sistem Siap</div>
+    </header>
+
+    <div class="app-container">
+        <!-- PANEL KIRI: KONFIGURASI DATA -->
+        <div class="panel">
+            <div class="panel-title">1. Pengaturan Kartu & Data</div>
+            
+            <div class="form-group">
+                <label>Mode ID Card</label>
+                <select id="cardMode" onchange="handleModeChange()">
+                    <option value="PELAJAR">Kartu Pelajar (Format Lengkap + TTD)</option>
+                    <option value="KARYAWAN">Guru / Karyawan (Format Minimalis)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>File Database (Excel .xlsx)</label>
+                <input type="file" id="excelInput" accept=".xlsx, .xls">
+            </div>
+
+            <div class="form-group">
+                <label>Template Background ID Card (PNG/JPG)</label>
+                <input type="file" id="templateInput" accept="image/*">
+            </div>
+
+            <div class="form-group" id="ttdContainer">
+                <label>Gambar TTD & Stempel Kepsek (PNG Transparan)</label>
+                <input type="file" id="ttdInput" accept="image/png">
+            </div>
+
+            <div class="panel-title" style="margin-top: 10px;">Daftar Antrean Data</div>
+            <div class="student-list" id="studentList">
+                <div style="color:var(--text-muted); font-size:12px; text-align:center; padding: 20px;">Silakan unggah file Excel data siswa/karyawan.</div>
+            </div>
+        </div>
+
+        <!-- PANEL TENGAH: KAMERA & PENGAMBILAN FOTO -->
+        <div class="panel" style="align-items: center;">
+            <div class="panel-title" style="width: 100%;">2. Pengambilan Foto</div>
+            
+            <div class="form-group" style="width: 100%;">
+                <label>Pilih Kamera</label>
+                <select id="cameraSelect" onchange="switchCamera()"></select>
+            </div>
+
+            <div class="video-container">
+                <video id="webcamVideo" autoplay playsinline muted></video>
+                <div id="cropGuide" class="crop-guide"></div>
+            </div>
+
+            <div id="activeInfo" style="text-align: center; font-size: 13px; color: var(--text-muted);">
+                Pilih target data dari panel kiri terlebih dahulu.
+            </div>
+
+            <button id="btnSnap" class="btn btn-primary" style="width: 100%;" disabled onclick="captureAndGenerate()">
+                📸 Ambil Foto & Cetak ID Card
+            </button>
+        </div>
+
+        <!-- PANEL KANAN: PREVIEW & DOWNLOAD -->
+        <div class="panel preview-area">
+            <div class="panel-title" style="width: 100%;">3. Preview Hasil Kartu</div>
+            <div id="cardPreview">
+                <span style="color:var(--text-muted); font-size:12px;">Hasil ID Card akan tampil di sini</span>
+            </div>
+            <button id="btnDownload" class="btn btn-primary" style="width: 100%; display: none;" onclick="downloadCard()">
+                💾 Unduh File ID Card (PNG)
+            </button>
+        </div>
+    </div>
+
+    <!-- Hidden Canvas Utility -->
+    <canvas id="photoCanvas" style="display:none;"></canvas>
+    <canvas id="barcodeCanvas" style="display:none;"></canvas>
+    <canvas id="cardCanvas" style="display:none;"></canvas>
+
+    <script>
+        let siswaData = [];
+        let selectedSiswa = null;
+        let currentStream = null;
+        let templateSrc = null;
+        let ttdStampImg = null;
+        const CARD_FONT = "'Plus Jakarta Sans', sans-serif";
+
+        window.onload = () => {
+            initCameras();
+            handleModeChange();
+        };
+
+        function setStatus(text, isError = false) {
+            const el = document.getElementById('statusBox');
+            el.textContent = text;
+            el.style.background = isError ? "rgba(239, 68, 68, 0.2)" : "rgba(59, 130, 246, 0.15)";
+            el.style.color = isError ? "#f87171" : "#60a5fa";
+        }
+
+        function handleModeChange() {
+            const mode = document.getElementById('cardMode').value;
+            const ttdBox = document.getElementById('ttdContainer');
+            const cropGuide = document.getElementById('cropGuide');
+
+            if (mode === 'PELAJAR') {
+                ttdBox.style.display = 'flex';
+                cropGuide.classList.remove('circle');
+            } else {
+                ttdBox.style.display = 'none';
+                cropGuide.classList.add('circle');
+            }
+            if (selectedSiswa && selectedSiswa.lastPhoto) {
+                renderCardWithPhoto(selectedSiswa.lastPhoto, selectedSiswa);
+            }
+        }
+
+        async function initCameras() {
+            const camSelect = document.getElementById('cameraSelect');
+            camSelect.innerHTML = "<option>Memindai kamera...</option>";
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                stream.getTracks().forEach(t => t.stop());
+
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(d => d.kind === 'videoinput');
+                camSelect.innerHTML = "";
+
+                if (videoDevices.length === 0) {
+                    camSelect.innerHTML = "<option value=''>Kamera tidak ditemukan</option>";
+                    return;
+                }
+
+                videoDevices.forEach((device, i) => {
+                    const opt = document.createElement('option');
+                    opt.value = device.deviceId;
+                    opt.textContent = device.label || `Kamera ${i + 1}`;
+                    camSelect.appendChild(opt);
+                });
+                switchCamera();
+            } catch (err) {
+                camSelect.innerHTML = "<option value=''>Akses Kamera Ditolak</option>";
+                setStatus("Gagal mengakses kamera", true);
+            }
+        }
+
+        async function switchCamera() {
+            if (currentStream) currentStream.getTracks().forEach(t => t.stop());
+            const deviceId = document.getElementById('cameraSelect').value;
+            if (!deviceId) return;
+
+            try {
+                currentStream = await navigator.mediaDevices.getUserMedia({
+                    video: { deviceId: { exact: deviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+                });
+                document.getElementById('webcamVideo').srcObject = currentStream;
+                setStatus("Kamera Aktif");
+            } catch (err) {
+                console.error("Camera Switch Error:", err);
+            }
+        }
+
+        // READ EXCEL DATABASE
+        document.getElementById('excelInput').addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = evt => {
+                const wb = XLSX.read(evt.target.result, { type: 'binary' });
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+                if (rows.length < 2) return;
+
+                let nisIdx = 0, namaIdx = 1, tptIdx = 2, tglIdx = 3, vaIdx = 4;
+                const header = rows[0].map(c => String(c || '').toUpperCase().trim());
+
+                header.forEach((h, i) => {
+                    if (h.includes('NIS') || h.includes('NPP') || h.includes('NIK')) nisIdx = i;
+                    if (h.includes('NAMA')) namaIdx = i;
+                    if (h.includes('TEMPAT')) tptIdx = i;
+                    if (h.includes('TANGGAL') || h.includes('TGL')) tglIdx = i;
+                    if (h.includes('VA') || h.includes('V.A')) vaIdx = i;
+                });
+
+                siswaData = [];
+                for (let i = 1; i < rows.length; i++) {
+                    const r = rows[i];
+                    if (!r || (!r[nisIdx] && !r[namaIdx])) continue;
+
+                    siswaData.push({
+                        nik: String(r[nisIdx] || '').trim(),
+                        nama: String(r[namaIdx] || '').trim(),
+                        tempatLahir: String(r[tptIdx] || '-').trim(),
+                        tglLahir: String(r[tglIdx] || '-').trim(),
+                        noVa: String(r[vaIdx] || '-').trim(),
+                        lastPhoto: null
+                    });
+                }
+                renderSiswaList();
+                setStatus(`Berhasil memuat ${siswaData.length} data`);
+            };
+            reader.readAsBinaryString(file);
+        });
+
+        document.getElementById('templateInput').addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file) templateSrc = URL.createObjectURL(file);
+        });
+
+        document.getElementById('ttdInput').addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file) {
+                ttdStampImg = new Image();
+                ttdStampImg.src = URL.createObjectURL(file);
+            }
+        });
+
+        function renderSiswaList() {
+            const container = document.getElementById('studentList');
+            container.innerHTML = "";
+
+            siswaData.forEach(s => {
+                const div = document.createElement('div');
+                div.className = `student-item ${selectedSiswa && selectedSiswa.nik === s.nik ? 'selected' : ''}`;
+                div.onclick = () => selectSiswa(s);
+
+                div.innerHTML = `
+                    <span><b>${s.nik}</b> - ${s.nama}</span>
+                    <span class="badge ${s.lastPhoto ? 'badge-done' : 'badge-pending'}">${s.lastPhoto ? '✅ Siap' : '⏳ Belum'}</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function selectSiswa(s) {
+            selectedSiswa = s;
+            document.getElementById('activeInfo').innerHTML = `
+                Target: <b style="color:var(--primary-blue);">${s.nama}</b> (${s.nik})
+            `;
+            document.getElementById('btnSnap').disabled = false;
+            renderSiswaList();
+            if (s.lastPhoto) renderCardWithPhoto(s.lastPhoto, s);
+        }
+
+        function captureAndGenerate() {
+            if (!selectedSiswa) return;
+            const video = document.getElementById('webcamVideo');
+            const photoCanvas = document.getElementById('photoCanvas');
+            const pCtx = photoCanvas.getContext('2d');
+
+            photoCanvas.width = video.videoWidth || 1920;
+            photoCanvas.height = video.videoHeight || 1080;
+            pCtx.drawImage(video, 0, 0);
+
+            const photoImg = new Image();
+            photoImg.src = photoCanvas.toDataURL('image/png');
+            photoImg.onload = () => {
+                selectedSiswa.lastPhoto = photoImg;
+                renderCardWithPhoto(photoImg, selectedSiswa);
+            };
+        }
+
+        async function renderCardWithPhoto(photoImg, targetSiswa) {
+            const cardCanvas = document.getElementById('cardCanvas');
+            const ctx = cardCanvas.getContext('2d');
+            const mode = document.getElementById('cardMode').value;
+
+            cardCanvas.width = 1140;
+            cardCanvas.height = 1800;
+            ctx.clearRect(0, 0, 1140, 1800);
+
+            const drawLayout = (bgImg) => {
+                if (bgImg) ctx.drawImage(bgImg, 0, 0, 1140, 1800);
+                else { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, 1140, 1800); }
+
+                if (mode === 'KARYAWAN') {
+                    // MODE GURU/KARYAWAN (Lingkaran + Barcode Horizontal)
+                    const cx = 570, cy = 620, rad = 280;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, rad, 0, Math.PI * 2);
+                    ctx.clip();
+
+                    let scale = Math.max((rad * 2) / photoImg.width, (rad * 2) / photoImg.height);
+                    let w = photoImg.width * scale, h = photoImg.height * scale;
+                    ctx.drawImage(photoImg, cx - w/2, cy - h/2, w, h);
+                    ctx.restore();
+
+                    ctx.textAlign = "center";
+                    ctx.fillStyle = "#000";
+                    ctx.font = `bold 58px ${CARD_FONT}`;
+                    ctx.fillText(targetSiswa.nama, 570, 1040);
+
+                    ctx.fillStyle = "#475569";
+                    ctx.font = `600 42px ${CARD_FONT}`;
+                    ctx.fillText(`NPP: ${targetSiswa.nik}`, 570, 1110);
+
+                    drawBarcode(targetSiswa.nik, 570, 1220, false);
+                } else {
+                    // MODE PELAJAR (Foto 3:4 + Barcode Vertikal + Details + TTD)
+                    const px = 75, py = 350, pw = 480, ph = 640;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(px, py, pw, ph);
+                    ctx.clip();
+
+                    let scale = Math.max(pw / photoImg.width, ph / photoImg.height);
+                    let w = photoImg.width * scale, h = photoImg.height * scale;
+                    ctx.drawImage(photoImg, px + (pw - w)/2, py + (ph - h)/2, w, h);
+                    ctx.restore();
+
+                    // Barcode Vertikal
+                    drawBarcode(targetSiswa.nik, 920, 670, true);
+
+                    // Details
+                    ctx.textAlign = "left";
+                    ctx.fillStyle = "#000";
+                    ctx.font = `bold 58px ${CARD_FONT}`;
+                    ctx.fillText(targetSiswa.nama, 75, 1080);
+
+                    ctx.font = `500 42px ${CARD_FONT}`;
+                    ctx.fillStyle = "#1e293b";
+                    const details = [
+                        { label: "NIS / NISN", val: targetSiswa.nik },
+                        { label: "Tempat Lahir", val: targetSiswa.tempatLahir },
+                        { label: "Tanggal Lahir", val: targetSiswa.tglLahir },
+                        { label: "No. V.A.", val: targetSiswa.noVa }
+                    ];
+
+                    let sy = 1160;
+                    details.forEach(item => {
+                        ctx.fillText(item.label, 75, sy);
+                        ctx.fillText(":", 420, sy);
+                        ctx.fillText(item.val, 460, sy);
+                        sy += 65;
+                    });
+
+                    // TTD Kepsek
+                    if (ttdStampImg) {
+                        ctx.drawImage(ttdStampImg, 620, 1420, 420, 240);
+                    }
+                }
+
+                const resultUrl = cardCanvas.toDataURL('image/png');
+                document.getElementById('cardPreview').innerHTML = `<img src="${resultUrl}">`;
+                document.getElementById('btnDownload').style.display = 'block';
+                renderSiswaList();
+            };
+
+            if (templateSrc) {
+                const bg = new Image();
+                bg.src = templateSrc;
+                bg.onload = () => drawLayout(bg);
+            } else {
+                drawLayout(null);
+            }
+        }
+
+        function drawBarcode(value, x, y, isVertical) {
+            try {
+                const bc = document.getElementById('barcodeCanvas');
+                JsBarcode(bc, value, { format: "CODE128", displayValue: true, fontSize: 18, height: 85, width: 3 });
+
+                const ctx = document.getElementById('cardCanvas').getContext('2d');
+                ctx.save();
+                if (isVertical) {
+                    ctx.translate(x, y);
+                    ctx.rotate(-Math.PI / 2);
+                    ctx.drawImage(bc, -bc.width / 2, -bc.height / 2);
+                } else {
+                    ctx.drawImage(bc, x - (bc.width / 2), y);
+                }
+                ctx.restore();
+            } catch (e) { console.error(e); }
+        }
+
+        function downloadCard() {
+            if (!selectedSiswa) return;
+            const canvas = document.getElementById('cardCanvas');
+            const link = document.createElement('a');
+            link.download = `IDCARD_${selectedSiswa.nik}_${selectedSiswa.nama.replace(/\s+/g, '_')}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>
