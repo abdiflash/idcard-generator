@@ -3,118 +3,285 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistem Generator ID Card & Kartu Pelajar</title>
+  <title>Generator ID Card - Dark Navy Edition</title>
+  <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Third-party Libraries -->
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  
+  <!-- CDN Third-Party Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
   <style>
-    body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    .card { border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    .step-header { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: #495057; margin-bottom: 8px; }
-    .badge-step { background-color: #212529; color: #fff; border-radius: 50%; padding: 3px 7px; margin-right: 5px; font-size: 0.75rem; }
-    #previewCanvas { width: 100%; max-width: 380px; height: auto; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); background: #fff; }
-    .video-container { position: relative; width: 100%; height: 260px; background-color: #000; border-radius: 8px; overflow: hidden; }
-    #videoElement { width: 100%; height: 100%; object-fit: cover; }
-    .crop-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 2px dashed #00ff66; pointer-events: none; }
-    .crop-overlay.circle { width: 160px; height: 160px; border-radius: 50%; }
-    .crop-overlay.square { width: 160px; height: 160px; border-radius: 8px; }
-    .data-list { max-height: 200px; overflow-y: auto; font-size: 0.9rem; }
-    .data-item { cursor: pointer; transition: background 0.2s; }
-    .data-item:hover, .data-item.active { background-color: #e7f1ff; font-weight: 600; }
+    :root {
+      --bg-main: #0b1329;
+      --card-bg: #152238;
+      --card-border: #1e3a5f;
+      --accent-blue: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-cyan: #06b6d4;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    .step-header {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-step {
+      background: var(--accent-blue);
+      color: #fff;
+      border-radius: 6px;
+      padding: 2px 7px;
+      font-size: 0.75rem;
+    }
+
+    .form-control, .form-select {
+      background-color: #0b1329;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      font-size: 0.875rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+      background-color: #0b1329;
+      border-color: var(--accent-cyan);
+      color: var(--text-main);
+      box-shadow: 0 0 0 0.25rem rgba(6, 182, 212, 0.25);
+    }
+
+    .form-range::-webkit-slider-thumb {
+      background: var(--accent-cyan);
+    }
+
+    /* Kamera Container Vertikal / Portrait */
+    .camera-wrapper {
+      position: relative;
+      width: 210px;
+      height: 280px;
+      margin: 0 auto;
+      background-color: #050b14;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid var(--card-border);
+    }
+
+    #videoElement {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .crop-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 2px dashed #00ffcc;
+      pointer-events: none;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+    }
+    .crop-overlay.circle { width: 140px; height: 140px; border-radius: 50%; }
+    .crop-overlay.square { width: 140px; height: 140px; border-radius: 10px; }
+
+    /* List Group Data */
+    .data-list {
+      max-height: 210px;
+      overflow-y: auto;
+    }
+
+    .data-item {
+      background-color: #0b1329;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.85rem;
+    }
+
+    .data-item:hover {
+      background-color: #1e293b;
+    }
+
+    .data-item.active {
+      background-color: #1e3a8a !important;
+      border-color: var(--accent-cyan);
+    }
+
+    /* Canvas Preview Container */
+    #previewCanvas {
+      width: 100%;
+      max-width: 360px;
+      height: auto;
+      border-radius: 16px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+      background: #ffffff;
+    }
+
+    .btn-cyan {
+      background-color: var(--accent-cyan);
+      color: #050b14;
+      font-weight: 600;
+    }
+    .btn-cyan:hover {
+      background-color: #0891b2;
+      color: #fff;
+    }
   </style>
 </head>
 <body class="py-4">
   <div class="container-fluid px-4">
     <div class="row g-4">
       
-      <!-- KIRI: CONTROL PANEL -->
+      <!-- KOLOM KIRI: PANEL KONTROL -->
       <div class="col-lg-7">
+        
+        <!-- PRESET LAYOUT & KONTROL VISUAL -->
         <div class="card p-3 mb-3">
-          <div class="step-header"><span class="badge-step">⚙</span> PRESET LAYOUT & PENYESUAIAN VISUAL FOTO</div>
-          <div class="row g-2">
-            <div class="col-md-6">
-              <label class="form-label small fw-bold">Jenis Preset Layout:</label>
-              <select id="presetSelect" class="form-select form-select-sm" onchange="renderCard()">
-                <option value="karyawan">ID Card Karyawan (circle)</option>
-                <option value="pelajar" selected>ID Card Pelajar (square)</option>
+          <div class="step-header"><span class="badge-step"><i class="fa-solid fa-sliders"></i></span> PRESET LAYOUT & PENYESUAIAN VISUAL</div>
+          <div class="row g-3">
+            <div class="col-md-5">
+              <label class="form-label small fw-semibold text-muted mb-1">Jenis Preset Layout:</label>
+              <select id="presetSelect" class="form-select" onchange="renderCard()">
+                <option value="karyawan" selected>ID Card Karyawan (circle)</option>
+                <option value="pelajar">ID Card Pelajar (square)</option>
               </select>
             </div>
-            <div class="col-md-3">
-              <label class="form-label small fw-bold">Skala Foto (<span id="scaleVal">100</span>%):</label>
-              <input type="range" class="form-range" id="photoScale" min="50" max="200" value="100" oninput="document.getElementById('scaleVal').innerText=this.value; renderCard();">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label small fw-bold">Geser Y (<span id="yVal">0</span>px):</label>
-              <input type="range" class="form-range" id="photoY" min="-150" max="150" value="0" oninput="document.getElementById('yVal').innerText=this.value; renderCard();">
+            <div class="col-md-7">
+              <div class="row g-2">
+                <div class="col-4">
+                  <label class="form-label small text-muted mb-1">Skala Foto (<span id="scaleVal">100</span>%)</label>
+                  <input type="range" class="form-range" id="photoScale" min="50" max="200" value="100" oninput="document.getElementById('scaleVal').innerText=this.value; renderCard();">
+                </div>
+                <div class="col-4">
+                  <label class="form-label small text-muted mb-1">Foto Y (<span id="yVal">0</span>px)</label>
+                  <input type="range" class="form-range" id="photoY" min="-150" max="150" value="0" oninput="document.getElementById('yVal').innerText=this.value; renderCard();">
+                </div>
+                <div class="col-4">
+                  <label class="form-label small text-muted mb-1">Teks Y (<span id="textYVal">0</span>px)</label>
+                  <input type="range" class="form-range" id="textY" min="-100" max="100" value="0" oninput="document.getElementById('textYVal').innerText=this.value; renderCard();">
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
+        <!-- UPLOAD DATABASE & TEMPLATE -->
         <div class="row g-3">
           <div class="col-md-6">
             <div class="card p-3 h-100">
               <div class="step-header"><span class="badge-step">1</span> DATABASE (EXCEL/CSV)</div>
-              <input type="file" id="excelInput" class="form-control form-control-sm" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)">
+              <input type="file" id="excelInput" class="form-control" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)">
             </div>
           </div>
           <div class="col-md-6">
             <div class="card p-3 h-100">
-              <div class="step-header"><span class="badge-step">2</span> TEMPLATE ID CARD (BACKGROUND)</div>
-              <input type="file" id="templateInput" class="form-control form-control-sm" accept="image/*" onchange="handleTemplateUpload(event)">
+              <div class="step-header"><span class="badge-step">2</span> TEMPLATE BACKGROUND ID CARD</div>
+              <input type="file" id="templateInput" class="form-control" accept="image/*" onchange="handleTemplateUpload(event)">
             </div>
           </div>
         </div>
 
+        <!-- SELEKSI KAMERA -->
         <div class="card p-3 mt-3">
-          <div class="step-header"><span class="badge-step">3</span> INPUT KAMERA</div>
-          <div class="row g-2 align-items-center">
+          <div class="step-header"><span class="badge-step">3</span> INPUT KAMERA (HP / USB)</div>
+          <div class="row g-2">
             <div class="col-8">
-              <select id="cameraSelect" class="form-select form-select-sm"></select>
+              <select id="cameraSelect" class="form-select"></select>
             </div>
             <div class="col-4">
-              <button class="btn btn-primary btn-sm w-100" onclick="startCamera()">📷 Pindai / Start</button>
+              <button class="btn btn-primary w-100 fw-semibold" onclick="startCamera()"><i class="fa-solid fa-video me-1"></i> Pindai / Start</button>
             </div>
           </div>
         </div>
 
+        <!-- PILIH DATA TERHUBUNG -->
         <div class="card p-3 mt-3">
-          <div class="step-header"><span class="badge-step">4</span> PILIH DATA TERHUBUNG</div>
-          <input type="text" id="searchInput" class="form-control form-control-sm mb-2" placeholder="Cari Nama / NISN / NIK..." oninput="filterDataList()">
+          <div class="step-header"><span class="badge-step">4</span> PILIH DATA KARYAWAN / PELAJAR</div>
+          <input type="text" id="searchInput" class="form-control mb-2" placeholder="Cari Nama / NIK / NPP / NISN..." oninput="filterDataList()">
           <div class="list-group data-list" id="dataListContainer">
-            <div class="list-group-item text-muted small">Silakan unggah file Excel data pelajar/karyawan...</div>
+            <div class="list-group-item data-item text-muted text-center py-3">Unggah file database Excel untuk menampilkan daftar data...</div>
           </div>
         </div>
 
+        <!-- AMBIL / UNGGAH FOTO -->
         <div class="card p-3 mt-3">
           <div class="step-header"><span class="badge-step">5</span> AMBIL / UNGGAH FOTO</div>
-          <div class="video-container mb-2">
-            <video id="videoElement" autoplay playsinline></video>
-            <div id="cropOverlay" class="crop-overlay square"></div>
-          </div>
-          <div class="d-flex gap-2">
-            <button class="btn btn-success btn-sm flex-fill" onclick="capturePhoto()">📸 Jepret Kamera</button>
-            <label class="btn btn-info btn-sm flex-fill text-white m-0">
-              📂 Unggah Single <input type="file" hidden accept="image/*" onchange="handleSinglePhotoUpload(event)">
-            </label>
+          
+          <div class="row align-items-center g-3">
+            <!-- Kamera Frame Vertikal -->
+            <div class="col-md-5 text-center">
+              <div class="camera-wrapper">
+                <video id="videoElement" autoplay playsinline></video>
+                <div id="cropOverlay" class="crop-overlay circle"></div>
+              </div>
+            </div>
+
+            <!-- Tombol Aksi Foto -->
+            <div class="col-md-7 d-flex flex-column gap-2">
+              <button class="btn btn-success fw-semibold py-2" onclick="capturePhoto()">
+                <i class="fa-solid fa-camera me-1"></i> Jepret Kamera
+              </button>
+              
+              <label class="btn btn-info text-white fw-semibold py-2 m-0">
+                <i class="fa-solid fa-file-image me-1"></i> Unggah Single Foto
+                <input type="file" hidden accept="image/*" onchange="handleSinglePhotoUpload(event)">
+              </label>
+
+              <label class="btn btn-warning text-dark fw-semibold py-2 m-0">
+                <i class="fa-solid fa-folder-open me-1"></i> Unggah Bulk Foto (Folder)
+                <input type="file" hidden webkitdirectory directory multiple onchange="handleFolderUpload(event)">
+              </label>
+            </div>
           </div>
         </div>
+
       </div>
 
-      <!-- KANAN: PREVIEW CANVA & ACTIONS -->
+      <!-- KOLOM KANAN: PREVIEW & DOWNLOAD -->
       <div class="col-lg-5 text-center">
-        <div class="card p-4 d-flex flex-column align-items-center">
-          <h6 class="fw-bold mb-1">PREVIEW ID CARD HASIL</h6>
-          <p class="text-muted small mb-3" id="targetInfo">Target: -</p>
+        <div class="card p-4 d-flex flex-column align-items-center sticky-top" style="top: 20px; z-index: 10;">
+          <h6 class="fw-bold tracking-wide mb-1 text-uppercase text-light">Preview ID Card Hasil</h6>
+          <p class="text-muted small mb-3" id="targetInfo">Target: Belum Memilih Data</p>
           
-          <!-- Canvas Render Core (673 x 1063 px) -->
+          <!-- Canvas ID Card Core (673 x 1063 px) -->
           <canvas id="previewCanvas" width="673" height="1063"></canvas>
 
-          <div class="mt-4 w-100">
-            <button class="btn btn-primary w-100 py-2 fw-bold mb-2" onclick="downloadSingleCard()">💾 UNDUH ID CARD (.PNG)</button>
-            <button class="btn btn-outline-danger btn-sm w-100" onclick="deleteCurrentPhoto()">🗑 Hapus Foto Terpasang</button>
+          <!-- Tombol Unduh -->
+          <div class="mt-4 w-100 d-flex flex-column gap-2">
+            <button class="btn btn-cyan py-2 text-uppercase tracking-wider" onclick="downloadSingleCard()">
+              <i class="fa-solid fa-download me-1"></i> Unduh ID Card Ini (.PNG)
+            </button>
+            <button class="btn btn-success py-2 text-uppercase tracking-wider fw-bold" onclick="downloadZipBatch()">
+              <i class="fa-solid fa-file-zipper me-1"></i> Unduh Selesai (ZIP)
+            </button>
+            <button class="btn btn-outline-danger btn-sm" onclick="deleteCurrentPhoto()">
+              <i class="fa-solid fa-trash me-1"></i> Hapus Foto Terpasang
+            </button>
           </div>
         </div>
       </div>
@@ -122,21 +289,15 @@
     </div>
   </div>
 
-  <!-- Offscreen Canvas for Barcode Generation -->
   <canvas id="hiddenBarcodeCanvas" style="display:none;"></canvas>
 
   <script>
-    // System State Variables
     let databaseData = [];
     let selectedIndex = -1;
     let templateImage = new Image();
     let currentStream = null;
 
-    // Load Default Canvas Layout & Event Listeners
     window.onload = function() {
-      // Default Background Canvas setup
-      templateImage.onload = function() { renderCard(); };
-      // Fallback blank white template if user hasn't uploaded one
       createBlankTemplate();
     };
 
@@ -148,9 +309,10 @@
       tCtx.fillStyle = "#ffffff";
       tCtx.fillRect(0, 0, 673, 1063);
       templateImage.src = tempCanvas.toDataURL();
+      templateImage.onload = function() { renderCard(); };
     }
 
-    // 1. Handle Excel Upload
+    // 1. Upload Database Excel
     function handleExcelUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -159,15 +321,15 @@
       reader.onload = function(evt) {
         const data = new Uint8Array(evt.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheet = workbook.SheetNames[0];
-        const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rawData = XLSX.utils.sheet_to_json(sheet);
         
         databaseData = rawData.map(item => ({
-          nisn: item['NIS/NISN'] || item['NPP/NIK'] || item['NIS'] || item['NIK'] || '20241001',
-          nama: item['Nama Lengkap'] || item['Nama'] || 'Nama Peserta',
-          tempatLahir: item['Tempat Lahir'] || '',
-          tanggalLahir: item['Tanggal Lahir'] || '',
-          noVa: item['No. V.A.'] || item['No VA'] || item['Jabatan'] || '',
+          nisn: item['NPP/NIK'] || item['NPP'] || item['NIK'] || item['NIS/NISN'] || item['NISN'] || item['NIS'] || '20241001',
+          nama: item['Nama Lengkap'] || item['Nama'] || 'Nama Karyawan',
+          unit: item['UNIT'] || item['Unit'] || item['UNIT / JABATAN'] || item['Jabatan'] || item['Tempat Lahir'] || 'Bandung',
+          tglLahir: item['Tanggal Lahir'] || '',
+          noVa: item['No. V.A.'] || item['No VA'] || '',
           photo: null
         }));
 
@@ -177,23 +339,26 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // 2. Render Data List
+    // 2. Render List Data Karyawan / Pelajar
     function renderDataList(list) {
       const container = document.getElementById('dataListContainer');
       container.innerHTML = '';
 
       if (list.length === 0) {
-        container.innerHTML = '<div class="list-group-item text-muted small">Tidak ada data ditemukan.</div>';
+        container.innerHTML = '<div class="list-group-item data-item text-muted text-center py-3">Tidak ada data ditemukan.</div>';
         return;
       }
 
       list.forEach((item, index) => {
         const el = document.createElement('div');
-        el.className = `list-group-item list-group-item-action data-item d-flex justify-content-between align-items-center ${index === selectedIndex ? 'active' : ''}`;
+        el.className = `list-group-item data-item d-flex justify-content-between align-items-center py-2 px-3 ${index === selectedIndex ? 'active' : ''}`;
         el.onclick = () => selectDataItem(index);
         
-        const hasPhotoBadge = item.photo ? '<span class="badge bg-success">✓ Foto</span>' : '<span class="badge bg-secondary">Belum</span>';
-        el.innerHTML = `<div><strong>${item.nisn}</strong> — ${item.nama}</div> ${hasPhotoBadge}`;
+        const badgeStatus = item.photo 
+          ? '<span class="badge bg-success"><i class="fa-solid fa-check"></i> Foto</span>' 
+          : '<span class="badge bg-secondary">Belum</span>';
+        
+        el.innerHTML = `<div><strong class="text-cyan">${item.nisn}</strong> — ${item.nama}</div> ${badgeStatus}`;
         container.appendChild(el);
       });
     }
@@ -201,7 +366,7 @@
     function filterDataList() {
       const query = document.getElementById('searchInput').value.toLowerCase();
       const filtered = databaseData.filter(d => 
-        d.nama.toLowerCase().includes(query) || d.nisn.toString().includes(query)
+        d.nama.toLowerCase().includes(query) || d.nisn.toString().toLowerCase().includes(query)
       );
       renderDataList(filtered);
     }
@@ -216,7 +381,7 @@
       renderCard();
     }
 
-    // 3. Handle Template Upload
+    // 3. Template Background Upload
     function handleTemplateUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -230,7 +395,7 @@
       reader.readAsDataURL(file);
     }
 
-    // 4. Camera Stream Logic
+    // 4. Kamera Stream & Capture Vertikal
     async function startCamera() {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
@@ -246,7 +411,11 @@
         });
 
         const constraints = {
-          video: { deviceId: select.value ? { exact: select.value } : undefined }
+          video: { 
+            deviceId: select.value ? { exact: select.value } : undefined,
+            width: { ideal: 720 },
+            height: { ideal: 1280 }
+          }
         };
 
         if (currentStream) {
@@ -262,7 +431,7 @@
 
     function capturePhoto() {
       if (selectedIndex < 0) {
-        alert("Pilih data siswa/karyawan terlebih dahulu!");
+        alert("Pilih data karyawan/pelajar terlebih dahulu!");
         return;
       }
       const video = document.getElementById('videoElement');
@@ -271,7 +440,6 @@
       canvas.height = 400;
       const ctx = canvas.getContext('2d');
       
-      // Crop center square
       const minDim = Math.min(video.videoWidth, video.videoHeight);
       const sx = (video.videoWidth - minDim) / 2;
       const sy = (video.videoHeight - minDim) / 2;
@@ -284,7 +452,7 @@
 
     function handleSinglePhotoUpload(e) {
       if (selectedIndex < 0) {
-        alert("Pilih data siswa/karyawan terlebih dahulu!");
+        alert("Pilih data terlebih dahulu!");
         return;
       }
       const file = e.target.files[0];
@@ -299,6 +467,36 @@
       reader.readAsDataURL(file);
     }
 
+    // 5. Bulk Upload Foto dari Folder
+    function handleFolderUpload(e) {
+      const files = Array.from(e.target.files);
+      if (files.length === 0 || databaseData.length === 0) {
+        alert("Pastikan database Excel sudah diunggah terlebih dahulu!");
+        return;
+      }
+
+      let matchedCount = 0;
+      files.forEach(file => {
+        const fileNameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')).toLowerCase();
+        
+        const matchedItem = databaseData.find(d => 
+          d.nisn.toString().toLowerCase() === fileNameWithoutExt || 
+          d.nama.toLowerCase() === fileNameWithoutExt
+        );
+
+        if (matchedItem) {
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            matchedItem.photo = evt.target.result;
+            matchedCount++;
+            renderDataList(databaseData);
+            if (databaseData[selectedIndex] === matchedItem) renderCard();
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
     function deleteCurrentPhoto() {
       if (selectedIndex >= 0 && databaseData[selectedIndex]) {
         databaseData[selectedIndex].photo = null;
@@ -307,17 +505,15 @@
       }
     }
 
-    // 5. ID CARD RENDER ENGINE (673 x 1063 px Precision)
+    // 6. RENDER CORE ENGINE ID CARD (673 x 1063 px)
     function renderCard() {
-      const mainCanvas = document.getElementById('previewCanvas');
-      const ctx = mainCanvas.getContext('2d');
+      const canvas = document.getElementById('previewCanvas');
+      const ctx = canvas.getContext('2d');
       const preset = document.getElementById('presetSelect').value;
       const cropOverlay = document.getElementById('cropOverlay');
 
-      // Update overlay visual camera
       cropOverlay.className = `crop-overlay ${preset === 'karyawan' ? 'circle' : 'square'}`;
 
-      // Reset & Draw Background Template
       ctx.clearRect(0, 0, 673, 1063);
       if (templateImage.complete && templateImage.naturalWidth > 0) {
         ctx.drawImage(templateImage, 0, 0, 673, 1063);
@@ -327,26 +523,25 @@
       }
 
       const activeData = databaseData[selectedIndex] || {
-        nama: 'MICHAEL TANUWIDJAJA',
-        nisn: '20241003',
-        tempatLahir: 'Bandung',
-        tanggalLahir: '05 Desember 2009',
-        noVa: '880.120.241.003',
+        nama: 'DEWI SARTIKA S.Pd.',
+        nisn: '20241001',
+        unit: 'STAF',
+        tglLahir: '',
+        noVa: '',
         photo: null
       };
 
-      // Photo Rendering Scaling & Translation
       const scale = parseFloat(document.getElementById('photoScale').value) / 100;
-      const offsetY = parseFloat(document.getElementById('photoY').value);
+      const photoY = parseFloat(document.getElementById('photoY').value);
+      const textY = parseFloat(document.getElementById('textY').value);
 
       if (activeData.photo) {
         const img = new Image();
         img.onload = function() {
           ctx.save();
           if (preset === 'karyawan') {
-            // Circle Photo Center Setup
             const centerX = 336.5;
-            const centerY = 430 + offsetY;
+            const centerY = 425 + photoY;
             const radius = (250 * scale) / 2;
 
             ctx.beginPath();
@@ -355,66 +550,58 @@
             ctx.clip();
             ctx.drawImage(img, centerX - radius, centerY - radius, radius * 2, radius * 2);
           } else {
-            // Square Photo Center Setup (ID Card Pelajar)
             const w = 250 * scale;
             const h = 250 * scale;
             const x = (673 - w) / 2;
-            const y = 310 + offsetY;
+            const y = 300 + photoY;
 
             ctx.beginPath();
-            ctx.roundRect(x, y, w, h, 12);
+            ctx.roundRect(x, y, w, h, 14);
             ctx.clip();
             ctx.drawImage(img, x, y, w, h);
           }
           ctx.restore();
-          drawCardTextAndBarcode(ctx, activeData, preset);
+          drawCardTextAndBarcode(ctx, activeData, preset, textY);
         };
         img.src = activeData.photo;
       } else {
-        // Draw Placeholder Photo
         ctx.save();
-        ctx.fillStyle = "#e9ecef";
+        ctx.fillStyle = "#cbd5e1";
         if (preset === 'karyawan') {
           ctx.beginPath();
-          ctx.arc(336.5, 430 + offsetY, 125 * scale, 0, Math.PI * 2);
+          ctx.arc(336.5, 425 + photoY, (250 * scale) / 2, 0, Math.PI * 2);
           ctx.fill();
         } else {
-          ctx.fillRect((673 - 250 * scale) / 2, 310 + offsetY, 250 * scale, 250 * scale);
+          ctx.fillRect((673 - 250 * scale) / 2, 300 + photoY, 250 * scale, 250 * scale);
         }
         ctx.restore();
-        drawCardTextAndBarcode(ctx, activeData, preset);
+        drawCardTextAndBarcode(ctx, activeData, preset, textY);
       }
     }
 
-    function drawCardTextAndBarcode(ctx, data, preset) {
+    function drawCardTextAndBarcode(ctx, data, preset, textYOffset) {
       ctx.textAlign = "center";
-      ctx.fillStyle = "#0d233a";
+      
+      // Render Nama Lengkap
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 30px 'Segoe UI', Arial";
+      ctx.fillText(data.nama.toUpperCase(), 336.5, 595 + textYOffset);
 
-      // 1. Render Nama Lengkap
-      ctx.font = "bold 32px 'Segoe UI', Arial";
-      ctx.fillText(data.nama.toUpperCase(), 336.5, 595);
-
-      // 2. Render Text Details
+      // Render Baris Informasi
       ctx.font = "20px 'Segoe UI', Arial";
-      ctx.fillStyle = "#333333";
+      ctx.fillStyle = "#334155";
 
-      if (preset === 'pelajar') {
-        // Data Kartu Pelajar Format
-        ctx.fillText(`NIS/NISN : ${data.nisn}`, 336.5, 645);
-        
-        const ttlText = (data.tempatLahir || data.tanggalLahir) 
-          ? `TTL : ${data.tempatLahir}${data.tempatLahir && data.tanggalLahir ? ', ' : ''}${data.tanggalLahir}`
-          : 'TTL : Bandung, 05 Desember 2009';
-        ctx.fillText(ttlText, 336.5, 685);
-
-        ctx.fillText(`No. V.A. : ${data.noVa || '-'}`, 336.5, 725);
+      if (preset === 'karyawan') {
+        ctx.fillText(`NPP / NIK : ${data.nisn}`, 336.5, 640 + textYOffset);
+        ctx.fillText(`UNIT : ${data.unit}`, 336.5, 680 + textYOffset);
       } else {
-        // Data ID Card Karyawan Format
-        ctx.fillText(`NIK/NPP : ${data.nisn}`, 336.5, 645);
-        ctx.fillText(`JABATAN : ${data.noVa || 'STAF'}`, 336.5, 685);
+        ctx.fillText(`NIS / NISN : ${data.nisn}`, 336.5, 640 + textYOffset);
+        const ttl = (data.unit || data.tglLahir) ? `TTL : ${data.unit}${data.tglLahir ? ', ' + data.tglLahir : ''}` : 'TTL : Bandung, 05 Des 2009';
+        ctx.fillText(ttl, 336.5, 680 + textYOffset);
+        ctx.fillText(`NO. V.A. : ${data.noVa || '-'}`, 336.5, 720 + textYOffset);
       }
 
-      // 3. Render Enlarged Barcode (Bottom Center Position)
+      // Render Barcode Berukuran Besar
       const barcodeCanvas = document.getElementById('hiddenBarcodeCanvas');
       try {
         JsBarcode(barcodeCanvas, data.nisn.toString(), {
@@ -424,18 +611,17 @@
           displayValue: false
         });
 
-        // Draw enlarged barcode onto main canvas
-        const bWidth = 450;
+        const bWidth = 460;
         const bHeight = 110;
         const bX = (673 - bWidth) / 2;
         const bY = 850;
         ctx.drawImage(barcodeCanvas, bX, bY, bWidth, bHeight);
       } catch (err) {
-        console.warn("Gagal merender barcode:", err);
+        console.warn("Error rendering barcode:", err);
       }
     }
 
-    // 6. Download Single Image
+    // 7. Unduh Single Image
     function downloadSingleCard() {
       const canvas = document.getElementById('previewCanvas');
       const activeData = databaseData[selectedIndex];
@@ -445,6 +631,78 @@
       link.download = filename;
       link.href = canvas.toDataURL('image/png');
       link.click();
+    }
+
+    // 8. Unduh ZIP Batch (Semua yang Berfoto)
+    async function downloadZipBatch() {
+      const completedItems = databaseData.filter(d => d.photo !== null);
+      if (completedItems.length === 0) {
+        alert("Belum ada foto yang dijepret/diunggah!");
+        return;
+      }
+
+      const zip = new JSZip();
+      const folder = zip.folder("ID_Cards_Hasil");
+
+      const offscreenCanvas = document.createElement('canvas');
+      offscreenCanvas.width = 673;
+      offscreenCanvas.height = 1063;
+      const offCtx = offscreenCanvas.getContext('2d');
+
+      const preset = document.getElementById('presetSelect').value;
+      const scale = parseFloat(document.getElementById('photoScale').value) / 100;
+      const photoY = parseFloat(document.getElementById('photoY').value);
+      const textY = parseFloat(document.getElementById('textY').value);
+
+      for (let item of completedItems) {
+        offCtx.clearRect(0, 0, 673, 1063);
+        if (templateImage.complete && templateImage.naturalWidth > 0) {
+          offCtx.drawImage(templateImage, 0, 0, 673, 1063);
+        } else {
+          offCtx.fillStyle = "#ffffff";
+          offCtx.fillRect(0, 0, 673, 1063);
+        }
+
+        await new Promise((resolve) => {
+          const img = new Image();
+          img.onload = function() {
+            offCtx.save();
+            if (preset === 'karyawan') {
+              const centerX = 336.5;
+              const centerY = 425 + photoY;
+              const radius = (250 * scale) / 2;
+
+              offCtx.beginPath();
+              offCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+              offCtx.clip();
+              offCtx.drawImage(img, centerX - radius, centerY - radius, radius * 2, radius * 2);
+            } else {
+              const w = 250 * scale;
+              const h = 250 * scale;
+              const x = (673 - w) / 2;
+              const y = 300 + photoY;
+
+              offCtx.beginPath();
+              offCtx.roundRect(x, y, w, h, 14);
+              offCtx.clip();
+              offCtx.drawImage(img, x, y, w, h);
+            }
+            offCtx.restore();
+
+            drawCardTextAndBarcode(offCtx, item, preset, textY);
+
+            const dataUrl = offscreenCanvas.toDataURL('image/png');
+            const base64Data = dataUrl.replace(/^data:image\/png;base64,/, "");
+            folder.file(`ID_CARD_${item.nisn}_${item.nama}.png`, base64Data, { base64: true });
+            resolve();
+          };
+          img.src = item.photo;
+        });
+      }
+
+      zip.generateAsync({ type: "blob" }).then(function(content) {
+        saveAs(content, "ID_Cards_Karyawan_Selesai.zip");
+      });
     }
   </script>
 </body>
