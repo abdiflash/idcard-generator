@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generator ID Card - Dark Navy Edition</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  
+  <!-- CDN Third-Party Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+  <style>
+    @font-face {
+      font-family: 'DINCondensed-Bold';
+      src: local('DINCondensed-Bold'), local('DIN Condensed'), local('Arial Narrow');
+    }
+
+    :root {
+      --bg-main: #0b1329;
+      --card-bg: #152238;
+      --card-border: #1e3a5f;
+      --accent-blue: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-cyan: #06b6d4;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    .step-header {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-step {
+      background: var(--accent-blue);
+      color: #fff;
+      border-radius: 6px;
+      padding: 2px 7px;
+      font-size: 0.75rem;
+    }
+
+    .form-control, .form-select {
+      background-color: #0b1329;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      font-size: 0.875rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+      background-color: #0b1329;
+      border-color: var(--accent-cyan);
+      color: var(--text-main);
+      box-shadow: 0 0 0 0.25rem rgba(6, 182, 212, 0.25);
+    }
+
+    .form-range::-webkit-slider-thumb {
+      background: var(--accent-cyan);
+    }
+
+    /* Kamera Container Vertikal / Portrait */
+    .camera-wrapper {
+      position: relative;
+      width: 210px;
+      height: 280px;
+      margin: 0 auto;
+      background-color: #050b14;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid var(--card-border);
+    }
+
+    #videoElement {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .crop-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 2px dashed #00ffcc;
+      pointer-events: none;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+    }
+    .crop-overlay.circle { width: 140px; height: 140px; border-radius: 50%; }
+
+    /* List Group Data */
+    .data-list {
+      max-height: 210px;
+      overflow-y: auto;
+    }
+
+    .data-item {
+      background-color: #0b1329;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.85rem;
+    }
+
+    .data-item:hover {
+      background-color: #1e293b;
+    }
+
+    .data-item.active {
+      background-color: #1e3a8a !important;
+      border-color: var(--accent-cyan);
+    }
+
+    /* Canvas Preview Container */
+    #previewCanvas {
+      width: 100%;
+      max-width: 360px;
+      height: auto;
+      border-radius: 16px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+      background: #ffffff;
+    }
+
+    .btn-cyan {
+      background-color: var(--accent-cyan);
+      color: #050b14;
+      font-weight: 600;
+    }
+    .btn-cyan:hover {
+      background-color: #0891b2;
+      color: #fff;
+    }
+  </style>
+</head>
+<body class="py-4">
+  <div class="container-fluid px-4">
+    <div class="row g-4">
+      
+      <!-- KOLOM KIRI: PANEL KONTROL -->
+      <div class="col-lg-7">
+        
+        <!-- PRESET LAYOUT & KONTROL VISUAL -->
+        <div class="card p-3 mb-3">
+          <div class="step-header"><span class="badge-step"><i class="fa-solid fa-sliders"></i></span> PRESET LAYOUT & PENYESUAIAN VISUAL</div>
+          <div class="row g-3">
+            <div class="col-md-5">
+              <label class="form-label small fw-semibold text-muted mb-1">Jenis Preset Layout:</label>
+              <select id="presetSelect" class="form-select" onchange="renderCard()">
+                <option value="karyawan">ID Card Karyawan (circle)</option>
+                <option value="pelajar" selected>ID Card Pelajar (circle)</option>
+              </select>
+            </div>
+            <div class="col-md-7">
+              <label class="form-label small fw-semibold text-muted mb-1">Teks Footer Website:</label>
+              <input type="text" id="footerInput" class="form-control" value="www.edueasy.id" placeholder="Contoh: www.sekolah.sch.id" oninput="renderCard()">
+            </div>
+          </div>
+          <div class="row g-2 mt-2">
+            <div class="col-4">
+              <label class="form-label small text-muted mb-1">Skala Foto (<span id="scaleVal">100</span>%)</label>
+              <input type="range" class="form-range" id="photoScale" min="50" max="200" value="100" oninput="document.getElementById('scaleVal').innerText=this.value; renderCard();">
+            </div>
+            <div class="col-4">
+              <label class="form-label small text-muted mb-1">Foto Y (<span id="yVal">0</span>px)</label>
+              <input type="range" class="form-range" id="photoY" min="-150" max="150" value="0" oninput="document.getElementById('yVal').innerText=this.value; renderCard();">
+            </div>
+            <div class="col-4">
+              <label class="form-label small text-muted mb-1">Teks Y (<span id="textYVal">0</span>px)</label>
+              <input type="range" class="form-range" id="textY" min="-50" max="250" value="0" oninput="document.getElementById('textYVal').innerText=this.value; renderCard();">
+            </div>
+          </div>
+        </div>
+
+        <!-- UPLOAD DATABASE & TEMPLATE -->
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card p-3 h-100">
+              <div class="step-header"><span class="badge-step">1</span> DATABASE (EXCEL/CSV)</div>
+              <input type="file" id="excelInput" class="form-control" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card p-3 h-100">
+              <div class="step-header"><span class="badge-step">2</span> TEMPLATE BACKGROUND ID CARD</div>
+              <input type="file" id="templateInput" class="form-control" accept="image/*" onchange="handleTemplateUpload(event)">
+            </div>
+          </div>
+        </div>
+
+        <!-- SELEKSI KAMERA -->
+        <div class="card p-3 mt-3">
+          <div class="step-header"><span class="badge-step">3</span> INPUT KAMERA (HP / USB)</div>
+          <div class="row g-2">
+            <div class="col-8">
+              <select id="cameraSelect" class="form-select"></select>
+            </div>
+            <div class="col-4">
+              <button class="btn btn-primary w-100 fw-semibold" onclick="startCamera()"><i class="fa-solid fa-video me-1"></i> Pindai / Start</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PILIH DATA TERHUBUNG -->
+        <div class="card p-3 mt-3">
+          <div class="step-header"><span class="badge-step">4</span> PILIH DATA KARYAWAN / PELAJAR</div>
+          <input type="text" id="searchInput" class="form-control mb-2" placeholder="Cari Nama / NIK / NPP / NISN..." oninput="filterDataList()">
+          <div class="list-group data-list" id="dataListContainer">
+            <div class="list-group-item data-item text-muted text-center py-3">Unggah file database Excel/CSV untuk menampilkan daftar data...</div>
+          </div>
+        </div>
+
+        <!-- AMBIL / UNGGAH FOTO -->
+        <div class="card p-3 mt-3">
+          <div class="step-header"><span class="badge-step">5</span> AMBIL / UNGGAH FOTO</div>
+          
+          <div class="row align-items-center g-3">
+            <div class="col-md-5 text-center">
+              <div class="camera-wrapper">
+                <video id="videoElement" autoplay playsinline></video>
+                <div id="cropOverlay" class="crop-overlay circle"></div>
+              </div>
+            </div>
+
+            <div class="col-md-7 d-flex flex-column gap-2">
+              <button class="btn btn-success fw-semibold py-2" onclick="capturePhoto()">
+                <i class="fa-solid fa-camera me-1"></i> Jepret Kamera
+              </button>
+              
+              <label class="btn btn-info text-white fw-semibold py-2 m-0">
+                <i class="fa-solid fa-file-image me-1"></i> Unggah Single Foto
+                <input type="file" hidden accept="image/*" onchange="handleSinglePhotoUpload(event)">
+              </label>
+
+              <label class="btn btn-warning text-dark fw-semibold py-2 m-0">
+                <i class="fa-solid fa-folder-open me-1"></i> Unggah Bulk Foto (Folder)
+                <input type="file" hidden webkitdirectory directory multiple onchange="handleFolderUpload(event)">
+              </label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- KOLOM KANAN: PREVIEW & DOWNLOAD -->
+      <div class="col-lg-5 text-center">
+        <div class="card p-4 d-flex flex-column align-items-center sticky-top" style="top: 20px; z-index: 10;">
+          <h6 class="fw-bold tracking-wide mb-1 text-uppercase text-light">Preview ID Card Hasil</h6>
+          <p class="text-muted small mb-3" id="targetInfo">Target: Belum Memilih Data</p>
+          
+          <!-- Canvas ID Card Core (673 x 1063 px) -->
+          <canvas id="previewCanvas" width="673" height="1063"></canvas>
+
+          <!-- Tombol Unduh -->
+          <div class="mt-4 w-100 d-flex flex-column gap-2">
+            <button class="btn btn-cyan py-2 text-uppercase tracking-wider" onclick="downloadSingleCard()">
+              <i class="fa-solid fa-download me-1"></i> Unduh ID Card Ini (.PNG)
+            </button>
+            <button class="btn btn-success py-2 text-uppercase tracking-wider fw-bold" onclick="downloadZipBatch()">
+              <i class="fa-solid fa-file-zipper me-1"></i> Unduh Selesai (ZIP)
+            </button>
+            <button class="btn btn-outline-danger btn-sm" onclick="deleteCurrentPhoto()">
+              <i class="fa-solid fa-trash me-1"></i> Hapus Foto Terpasang
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <canvas id="hiddenBarcodeCanvas" style="display:none;"></canvas>
+
+  <script>
+    let databaseData = [];
+    let selectedIndex = -1;
+    let templateImage = new Image();
+    let currentStream = null;
+
+    window.onload = function() {
+      createBlankTemplate();
+    };
+
+    function createBlankTemplate() {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = 673;
+      tempCanvas.height = 1063;
+      const tCtx = tempCanvas.getContext('2d');
+      tCtx.fillStyle = "#ffffff";
+      tCtx.fillRect(0, 0, 673, 1063);
+      templateImage.src = tempCanvas.toDataURL();
+      templateImage.onload = function() { renderCard(); };
+    }
+
+    // 1. Upload Database Excel/CSV dengan Pemetaaan Kolom Otomatis
+    function handleExcelUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          let workbook;
+          if (file.name.toLowerCase().endsWith('.csv')) {
+            const text = evt.target.result;
+            workbook = XLSX.read(text, { type: 'string' });
+          } else {
+            const data = new Uint8Array(evt.target.result);
+            workbook = XLSX.read(data, { type: 'array' });
+          }
+
+          const sheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[sheetName];
+          const rawData = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
+          
+          databaseData = rawData.map(item => {
+            // Normalisasi key header (hapus spasi & karakter unik)
+            const norm = {};
+            Object.keys(item).forEach(k => {
+              const cleanK = k.toString().toLowerCase().replace(/[^a-z0-9]/g, '');
+              norm[cleanK] = item[k];
+            });
+
+            // Pemetaan nilai sesuai struktur sheet Excel
+            const nisnVal = norm['nisnisn'] || norm['nisn'] || norm['nis'] || norm['nppnik'] || norm['npp'] || norm['nik'] || '20241001';
+            const namaVal = norm['namalengkap'] || norm['nama'] || 'Nama Peserta';
+            const unitVal = norm['tempatlahir'] || norm['unit'] || norm['jabatan'] || 'Jakarta';
+            const tglVal = norm['tanggallahir'] || norm['tgllahir'] || norm['tgl'] || '';
+            const vaVal = norm['nova'] || norm['va'] || norm['virtualaccount'] || norm['virtual'] || '';
+
+            return {
+              nisn: String(nisnVal).trim(),
+              nama: String(namaVal).trim(),
+              unit: String(unitVal).trim(),
+              tglLahir: String(tglVal).trim(),
+              noVa: String(vaVal).trim(),
+              photo: null
+            };
+          });
+
+          renderDataList(databaseData);
+          if (databaseData.length > 0) selectDataItem(0);
+        } catch (err) {
+          alert("Gagal membaca file database: " + err.message);
+        }
+      };
+
+      if (file.name.toLowerCase().endsWith('.csv')) {
+        reader.readAsText(file);
+      } else {
+        reader.readAsArrayBuffer(file);
+      }
+    }
+
+    // 2. Render List Data
+    function renderDataList(list) {
+      const container = document.getElementById('dataListContainer');
+      container.innerHTML = '';
+
+      if (list.length === 0) {
+        container.innerHTML = '<div class="list-group-item data-item text-muted text-center py-3">Tidak ada data ditemukan.</div>';
+        return;
+      }
+
+      list.forEach((item, index) => {
+        const el = document.createElement('div');
+        el.className = `list-group-item data-item d-flex justify-content-between align-items-center py-2 px-3 ${index === selectedIndex ? 'active' : ''}`;
+        el.onclick = () => selectDataItem(index);
+        
+        const badgeStatus = item.photo 
+          ? '<span class="badge bg-success"><i class="fa-solid fa-check"></i> Foto</span>' 
+          : '<span class="badge bg-secondary">Belum</span>';
+        
+        el.innerHTML = `<div><strong class="text-cyan">${item.nisn}</strong> — ${item.nama}</div> ${badgeStatus}`;
+        container.appendChild(el);
+      });
+    }
+
+    function filterDataList() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = databaseData.filter(d => 
+        d.nama.toLowerCase().includes(query) || d.nisn.toString().toLowerCase().includes(query)
+      );
+      renderDataList(filtered);
+    }
+
+    function selectDataItem(idx) {
+      selectedIndex = idx;
+      renderDataList(databaseData);
+      const current = databaseData[selectedIndex];
+      if (current) {
+        document.getElementById('targetInfo').innerText = `Target: ${current.nama} (${current.nisn})`;
+      }
+      renderCard();
+    }
+
+    // 3. Template Background Upload
+    function handleTemplateUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        templateImage = new Image();
+        templateImage.onload = () => renderCard();
+        templateImage.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // 4. Kamera Stream
+    async function startCamera() {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        
+        const select = document.getElementById('cameraSelect');
+        select.innerHTML = '';
+        videoDevices.forEach((device, index) => {
+          const option = document.createElement('option');
+          option.value = device.deviceId;
+          option.text = device.label || `Kamera ${index + 1}`;
+          select.appendChild(option);
+        });
+
+        const constraints = {
+          video: { 
+            deviceId: select.value ? { exact: select.value } : undefined,
+            width: { ideal: 720 },
+            height: { ideal: 1280 }
+          }
+        };
+
+        if (currentStream) {
+          currentStream.getTracks().forEach(track => track.stop());
+        }
+
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        document.getElementById('videoElement').srcObject = currentStream;
+      } catch (err) {
+        alert("Gagal mengakses kamera: " + err.message);
+      }
+    }
+
+    function capturePhoto() {
+      if (selectedIndex < 0) {
+        alert("Pilih data karyawan/pelajar terlebih dahulu!");
+        return;
+      }
+      const video = document.getElementById('videoElement');
+      const canvas = document.createElement('canvas');
+      canvas.width = 400;
+      canvas.height = 400;
+      const ctx = canvas.getContext('2d');
+      
+      const minDim = Math.min(video.videoWidth, video.videoHeight);
+      const sx = (video.videoWidth - minDim) / 2;
+      const sy = (video.videoHeight - minDim) / 2;
+      ctx.drawImage(video, sx, sy, minDim, minDim, 0, 0, 400, 400);
+
+      databaseData[selectedIndex].photo = canvas.toDataURL('image/png');
+      renderDataList(databaseData);
+      renderCard();
+    }
+
+    function handleSinglePhotoUpload(e) {
+      if (selectedIndex < 0) {
+        alert("Pilih data terlebih dahulu!");
+        return;
+      }
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        databaseData[selectedIndex].photo = evt.target.result;
+        renderDataList(databaseData);
+        renderCard();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // 5. Bulk Upload Foto dari Folder
+    function handleFolderUpload(e) {
+      const files = Array.from(e.target.files);
+      if (files.length === 0 || databaseData.length === 0) {
+        alert("Pastikan database Excel/CSV sudah diunggah terlebih dahulu!");
+        return;
+      }
+
+      files.forEach(file => {
+        const fileNameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')).toLowerCase();
+        
+        const matchedItem = databaseData.find(d => 
+          d.nisn.toString().toLowerCase() === fileNameWithoutExt || 
+          d.nama.toLowerCase() === fileNameWithoutExt
+        );
+
+        if (matchedItem) {
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            matchedItem.photo = evt.target.result;
+            renderDataList(databaseData);
+            if (databaseData[selectedIndex] === matchedItem) renderCard();
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    function deleteCurrentPhoto() {
+      if (selectedIndex >= 0 && databaseData[selectedIndex]) {
+        databaseData[selectedIndex].photo = null;
+        renderDataList(databaseData);
+        renderCard();
+      }
+    }
+
+    // 6. RENDER CORE ENGINE (DINCondensed-Bold & Dynamic Footer)
+    function renderCard() {
+      const canvas = document.getElementById('previewCanvas');
+      const ctx = canvas.getContext('2d');
+      const preset = document.getElementById('presetSelect').value;
+
+      ctx.clearRect(0, 0, 673, 1063);
+      if (templateImage.complete && templateImage.naturalWidth > 0) {
+        ctx.drawImage(templateImage, 0, 0, 673, 1063);
+      } else {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, 673, 1063);
+      }
+
+      const activeData = databaseData[selectedIndex] || {
+        nama: 'BUDI SANTOSO',
+        nisn: '20241001',
+        unit: 'Jakarta',
+        tglLahir: '15 Maret 2010',
+        noVa: '880.120.241.001',
+        photo: null
+      };
+
+      const scale = parseFloat(document.getElementById('photoScale').value) / 100;
+      const photoY = parseFloat(document.getElementById('photoY').value);
+      const textY = parseFloat(document.getElementById('textY').value);
+
+      if (activeData.photo) {
+        const img = new Image();
+        img.onload = function() {
+          ctx.save();
+          const centerX = 336.5;
+          const centerY = 425 + photoY;
+          const radius = (250 * scale) / 2;
+
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.clip();
+          ctx.drawImage(img, centerX - radius, centerY - radius, radius * 2, radius * 2);
+          ctx.restore();
+
+          drawCardTextAndBarcode(ctx, activeData, preset, textY);
+        };
+        img.src = activeData.photo;
+      } else {
+        ctx.save();
+        ctx.fillStyle = "#cbd5e1";
+        ctx.beginPath();
+        ctx.arc(336.5, 425 + photoY, (250 * scale) / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        
+        drawCardTextAndBarcode(ctx, activeData, preset, textY);
+      }
+    }
+
+    function drawCardTextAndBarcode(ctx, data, preset, textYOffset) {
+      ctx.textAlign = "center";
+      
+      const fontFamily = "'DINCondensed-Bold', 'DIN Condensed', 'Arial Narrow', sans-serif-condensed, sans-serif";
+
+      // 1. Render Nama Lengkap
+      ctx.fillStyle = "#000000";
+      ctx.font = `bold 36px ${fontFamily}`;
+      ctx.fillText(data.nama.toUpperCase(), 336.5, 595 + textYOffset);
+
+      // 2. Render Teks Detail
+      ctx.font = `bold 24px ${fontFamily}`;
+      ctx.fillStyle = "#333333";
+
+      if (preset === 'karyawan') {
+        ctx.fillText(`NPP / NIK : ${data.nisn}`, 336.5, 635 + textYOffset);
+        ctx.fillText(`UNIT : ${data.unit.toUpperCase()}`, 336.5, 670 + textYOffset);
+      } else {
+        ctx.fillText(`NIS / NISN : ${data.nisn}`, 336.5, 635 + textYOffset);
+        
+        const ttl = (data.unit || data.tglLahir) 
+          ? `TTL : ${data.unit}${data.tglLahir ? ', ' + data.tglLahir : ''}`
+          : 'TTL : Jakarta, 15 Maret 2010';
+        ctx.fillText(ttl, 336.5, 670 + textYOffset);
+
+        const vaText = data.noVa ? data.noVa : '-';
+        ctx.fillText(`NO. V.A. : ${vaText}`, 336.5, 705 + textYOffset);
+      }
+
+      // 3. Render Barcode Code128
+      const barcodeCanvas = document.getElementById('hiddenBarcodeCanvas');
+      try {
+        JsBarcode(barcodeCanvas, data.nisn.toString(), {
+          format: "CODE128",
+          width: 3,
+          height: 90,
+          displayValue: false
+        });
+
+        const bWidth = 460;
+        const bHeight = 100;
+        const bX = (673 - bWidth) / 2;
+        const bY = 885;
+        ctx.drawImage(barcodeCanvas, bX, bY, bWidth, bHeight);
+      } catch (err) {
+        console.warn("Error rendering barcode:", err);
+      }
+
+      // 4. Render Footer Text dari Input User
+      const footerVal = document.getElementById('footerInput') ? document.getElementById('footerInput').value : '';
+      if (footerVal) {
+        ctx.font = `bold 18px ${fontFamily}`;
+        ctx.fillStyle = "#555555";
+        ctx.fillText(footerVal, 336.5, 1025);
+      }
+    }
+
+    // 7. Unduh Single Image
+    function downloadSingleCard() {
+      const canvas = document.getElementById('previewCanvas');
+      const activeData = databaseData[selectedIndex];
+      const filename = activeData ? `ID_CARD_${activeData.nisn}_${activeData.nama}.png` : 'ID_CARD.png';
+      
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // 8. Unduh ZIP Batch
+    async function downloadZipBatch() {
+      const completedItems = databaseData.filter(d => d.photo !== null);
+      if (completedItems.length === 0) {
+        alert("Belum ada foto yang dijepret/diunggah!");
+        return;
+      }
+
+      const zip = new JSZip();
+      const folder = zip.folder("ID_Cards_Hasil");
+
+      const offscreenCanvas = document.createElement('canvas');
+      offscreenCanvas.width = 673;
+      offscreenCanvas.height = 1063;
+      const offCtx = offscreenCanvas.getContext('2d');
+
+      const preset = document.getElementById('presetSelect').value;
+      const scale = parseFloat(document.getElementById('photoScale').value) / 100;
+      const photoY = parseFloat(document.getElementById('photoY').value);
+      const textY = parseFloat(document.getElementById('textY').value);
+
+      for (let item of completedItems) {
+        offCtx.clearRect(0, 0, 673, 1063);
+        if (templateImage.complete && templateImage.naturalWidth > 0) {
+          offCtx.drawImage(templateImage, 0, 0, 673, 1063);
+        } else {
+          offCtx.fillStyle = "#ffffff";
+          offCtx.fillRect(0, 0, 673, 1063);
+        }
+
+        await new Promise((resolve) => {
+          const img = new Image();
+          img.onload = function() {
+            offCtx.save();
+            const centerX = 336.5;
+            const centerY = 425 + photoY;
+            const radius = (250 * scale) / 2;
+
+            offCtx.beginPath();
+            offCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            offCtx.clip();
+            offCtx.drawImage(img, centerX - radius, centerY - radius, radius * 2, radius * 2);
+            offCtx.restore();
+
+            drawCardTextAndBarcode(offCtx, item, preset, textY);
+
+            const dataUrl = offscreenCanvas.toDataURL('image/png');
+            const base64Data = dataUrl.replace(/^data:image\/png;base64,/, "");
+            folder.file(`ID_CARD_${item.nisn}_${item.nama}.png`, base64Data, { base64: true });
+            resolve();
+          };
+          img.src = item.photo;
+        });
+      }
+
+      zip.generateAsync({ type: "blob" }).then(function(content) {
+        saveAs(content, "ID_Cards_Hasil_Selesai.zip");
+      });
+    }
+  </script>
+</body>
+</html>
