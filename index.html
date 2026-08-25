@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generator ID Card - Compact Preview Edition</title>
+  <title>Generator ID Card - Minimalist Right Buttons</title>
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Font Awesome Icons -->
@@ -25,9 +25,8 @@
       --bg-main: #0b1329;
       --card-bg: #152238;
       --card-border: #1e3a5f;
-      --accent-blue: #2563eb;
-      --accent-hover: #1d4ed8;
-      --accent-cyan: #06b6d4;
+      --accent-soft: #3b82f6; /* Single Soft Color untuk semua tombol */
+      --accent-soft-hover: #2563eb;
       --text-main: #f1f5f9;
       --text-muted: #94a3b8;
     }
@@ -50,7 +49,7 @@
       font-weight: 700;
       letter-spacing: 0.5px;
       text-transform: uppercase;
-      color: var(--accent-cyan);
+      color: #38bdf8;
       margin-bottom: 10px;
       display: flex;
       align-items: center;
@@ -58,7 +57,7 @@
     }
 
     .badge-step {
-      background: var(--accent-blue);
+      background: var(--accent-soft);
       color: #fff;
       border-radius: 6px;
       padding: 2px 7px;
@@ -74,18 +73,18 @@
 
     .form-control:focus, .form-select:focus {
       background-color: #0b1329;
-      border-color: var(--accent-cyan);
+      border-color: var(--accent-soft);
       color: var(--text-main);
-      box-shadow: 0 0 0 0.25rem rgba(6, 182, 212, 0.25);
+      box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
     }
 
     .form-range::-webkit-slider-thumb {
-      background: var(--accent-cyan);
+      background: var(--accent-soft);
     }
 
     .input-preset-num {
       background-color: #0b1329 !important;
-      color: var(--accent-cyan) !important;
+      color: #38bdf8 !important;
       border: 1px solid var(--card-border) !important;
       font-weight: 700;
       font-size: 0.8rem;
@@ -113,7 +112,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      border: 2px dashed #00ffcc;
+      border: 2px dashed #38bdf8;
       pointer-events: none;
       box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
     }
@@ -139,27 +138,39 @@
 
     .data-item.active {
       background-color: #1e3a8a !important;
-      border-color: var(--accent-cyan);
+      border-color: var(--accent-soft);
     }
 
-    /* Ukuran Preview Ringkas (Compact Display) */
     #previewCanvas {
       width: 100%;
-      max-width: 220px; /* <--- Diperkecil agar compact */
+      max-width: 220px;
       height: auto;
       border-radius: 10px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       background: #ffffff;
     }
 
-    .btn-cyan {
-      background-color: var(--accent-cyan);
-      color: #050b14;
-      font-weight: 600;
+    /* Styling Tombol Minimalis Seragam (1 Warna Soft & Compact) */
+    .btn-custom {
+      background-color: var(--accent-soft);
+      color: #ffffff;
+      border: none;
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      cursor: pointer;
     }
-    .btn-cyan:hover {
-      background-color: #0891b2;
-      color: #fff;
+    .btn-custom:hover {
+      background-color: var(--accent-soft-hover);
+      color: #ffffff;
+      opacity: 0.95;
     }
   </style>
 </head>
@@ -239,13 +250,11 @@
 
         <div class="card p-3 mt-3">
           <div class="step-header"><span class="badge-step">3</span> INPUT KAMERA (HP / USB)</div>
-          <div class="row g-2">
-            <div class="col-8">
-              <select id="cameraSelect" class="form-select"></select>
-            </div>
-            <div class="col-4">
-              <button class="btn btn-primary w-100 fw-semibold" onclick="startCamera()"><i class="fa-solid fa-video me-1"></i> Pindai / Start</button>
-            </div>
+          <div class="d-flex gap-2 align-items-center">
+            <select id="cameraSelect" class="form-select"></select>
+            <button class="btn-custom ms-auto" onclick="startCamera()">
+              <i class="fa-solid fa-video"></i> Start
+            </button>
           </div>
         </div>
 
@@ -259,7 +268,7 @@
 
       </div>
 
-      <!-- KOLOM 2: AMBIL FOTO & PREVIEW HASIL COMPACT (KANAN) -->
+      <!-- KOLOM 2: AMBIL FOTO & PREVIEW HASIL (KANAN) -->
       <div class="col-lg-6">
         
         <!-- STEP 5: AMBIL / UNGGAH FOTO -->
@@ -274,44 +283,45 @@
               </div>
             </div>
 
-            <div class="col-md-7 d-flex flex-column gap-2">
-              <button class="btn btn-success fw-semibold py-2" onclick="capturePhoto()">
-                <i class="fa-solid fa-camera me-1"></i> Jepret Kamera
+            <!-- TOMBOL DI SISI KANAN SEMUA & MINIMALIS -->
+            <div class="col-md-7 d-flex flex-column align-items-end gap-2">
+              <button class="btn-custom" onclick="capturePhoto()">
+                <i class="fa-solid fa-camera"></i> Jepret Kamera
               </button>
               
-              <label class="btn btn-info text-white fw-semibold py-2 m-0">
-                <i class="fa-solid fa-file-image me-1"></i> Unggah Single Foto
+              <label class="btn-custom m-0">
+                <i class="fa-solid fa-file-image"></i> Unggah Single Foto
                 <input type="file" hidden accept="image/*" onchange="handleSinglePhotoUpload(event)">
               </label>
 
-              <label class="btn btn-warning text-dark fw-semibold py-2 m-0">
-                <i class="fa-solid fa-folder-open me-1"></i> Unggah Bulk Foto (Folder)
+              <label class="btn-custom m-0">
+                <i class="fa-solid fa-folder-open"></i> Unggah Bulk Foto
                 <input type="file" hidden webkitdirectory directory multiple onchange="handleFolderUpload(event)">
               </label>
             </div>
           </div>
         </div>
 
-        <!-- PREVIEW COMPACT RINGKAS -->
+        <!-- PREVIEW COMPACT & TOMBOL KANAN -->
         <div class="card p-3 d-flex flex-column align-items-center">
           <div class="d-flex justify-content-between align-items-center w-100 mb-2 border-bottom border-secondary pb-2">
             <h6 class="fw-bold tracking-wide m-0 text-uppercase text-light" style="font-size:0.85rem;">Preview ID Card</h6>
             <span class="text-muted small" id="targetInfo" style="font-size:0.75rem;">Target: Belum Memilih Data</span>
           </div>
 
-          <!-- Canvas Preview Compact (Tampilan Ringkas) -->
+          <!-- Canvas Preview Compact -->
           <canvas id="previewCanvas" width="673" height="1063"></canvas>
 
-          <!-- Tombol Aksi Download -->
-          <div class="mt-3 w-100 d-flex flex-column gap-2">
-            <button class="btn btn-cyan btn-sm py-2 text-uppercase tracking-wider" onclick="downloadSingleCard()">
-              <i class="fa-solid fa-download me-1"></i> Unduh ID Card Ini (.PNG)
+          <!-- TOMBOL AKSI DOWNLOAD (SISI KANAN SEMUA & MINIMALIS) -->
+          <div class="mt-3 w-100 d-flex flex-column align-items-end gap-2">
+            <button class="btn-custom" onclick="downloadSingleCard()">
+              <i class="fa-solid fa-download"></i> Unduh PNG
             </button>
-            <button class="btn btn-success btn-sm py-2 text-uppercase tracking-wider fw-bold" onclick="downloadZipBatch()">
-              <i class="fa-solid fa-file-zipper me-1"></i> Unduh Selesai (ZIP)
+            <button class="btn-custom" onclick="downloadZipBatch()">
+              <i class="fa-solid fa-file-zipper"></i> Unduh ZIP Batch
             </button>
-            <button class="btn btn-outline-danger btn-sm py-1" onclick="deleteCurrentPhoto()" style="font-size:0.75rem;">
-              <i class="fa-solid fa-trash me-1"></i> Hapus Foto Terpasang
+            <button class="btn-custom" onclick="deleteCurrentPhoto()">
+              <i class="fa-solid fa-trash"></i> Hapus Foto
             </button>
           </div>
         </div>
@@ -444,7 +454,7 @@
           ? '<span class="badge bg-success"><i class="fa-solid fa-check"></i> Foto</span>' 
           : '<span class="badge bg-secondary">Belum</span>';
         
-        el.innerHTML = `<div><strong class="text-cyan">${item.nisn || '-'}</strong> — ${item.nama || 'Tanpa Nama'}</div> ${badgeStatus}`;
+        el.innerHTML = `<div><strong class="text-info">${item.nisn || '-'}</strong> — ${item.nama || 'Tanpa Nama'}</div> ${badgeStatus}`;
         container.appendChild(el);
       });
     }
