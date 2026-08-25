@@ -40,7 +40,7 @@
       color: var(--text-main);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       min-height: 100vh;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
     }
 
     ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -50,55 +50,59 @@
     .app-header {
       background: #091020;
       border-bottom: 1px solid var(--card-border);
-      padding: 10px 20px;
+      padding: 12px 24px;
     }
 
     .card-custom {
       background-color: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 10px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
     }
 
     .step-header {
-      font-size: 0.73rem;
+      font-size: 0.75rem;
       font-weight: 800;
       letter-spacing: 0.5px;
       text-transform: uppercase;
       color: var(--accent-cyan);
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
 
     .badge-step {
       background: linear-gradient(135deg, var(--accent-blue), #1d4ed8);
       color: #fff;
       border-radius: 5px;
-      padding: 2px 7px;
+      padding: 2px 8px;
       font-size: 0.72rem;
       font-weight: 800;
     }
 
-    /* Custom File Input Styling */
+    /* Custom File Input */
     .file-input-wrapper {
       display: flex;
       align-items: center;
       background-color: var(--input-bg);
       border: 1px solid var(--card-border);
       border-radius: 6px;
-      padding: 4px;
+      padding: 5px;
       overflow: hidden;
     }
     .file-input-btn {
-      background-color: #f8fafc;
+      background-color: #ffffff;
       color: #0f172a;
       font-weight: 700;
       font-size: 0.72rem;
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 4px;
       cursor: pointer;
       white-space: nowrap;
+      transition: background-color 0.2s;
+    }
+    .file-input-btn:hover {
+      background-color: #e2e8f0;
     }
     .file-input-label {
       color: var(--text-muted);
@@ -115,7 +119,7 @@
       color: var(--text-main);
       font-size: 0.75rem;
       border-radius: 6px;
-      padding: 5px 8px;
+      padding: 6px 10px;
     }
 
     .form-control:focus, .form-select:focus {
@@ -125,11 +129,11 @@
       box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
     }
 
-    .form-range { height: 3px; }
+    .form-range { height: 4px; }
     .form-range::-webkit-slider-thumb {
       background: var(--accent-blue);
-      width: 12px;
-      height: 12px;
+      width: 14px;
+      height: 14px;
     }
 
     .input-preset-num {
@@ -137,18 +141,18 @@
       color: #38bdf8 !important;
       border: 1px solid var(--card-border) !important;
       font-weight: 700;
-      font-size: 0.7rem;
+      font-size: 0.72rem;
       border-radius: 4px;
       text-align: center;
     }
 
-    /* Camera Element */
+    /* Camera Viewfinder */
     .camera-wrapper {
       position: relative;
-      width: 180px;
-      height: 220px;
+      width: 150px;
+      height: 180px;
       background-color: #000;
-      border-radius: 10px;
+      border-radius: 8px;
       overflow: hidden;
       border: 1px solid var(--card-border);
       flex-shrink: 0;
@@ -170,12 +174,12 @@
       box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
       transition: all 0.2s ease;
     }
-    .crop-overlay.circle { width: 125px; height: 125px; border-radius: 50%; }
-    .crop-overlay.rounded { width: 120px; height: 135px; border-radius: 16px; }
+    .crop-overlay.circle { width: 110px; height: 110px; border-radius: 50%; }
+    .crop-overlay.rounded { width: 100px; height: 120px; border-radius: 12px; }
 
     /* Data List */
     .data-list {
-      max-height: 240px;
+      max-height: 180px;
       overflow-y: auto;
       border-radius: 6px;
       border: 1px solid var(--card-border);
@@ -187,7 +191,8 @@
       border-bottom: 1px solid var(--card-border);
       color: var(--text-main);
       cursor: pointer;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
+      transition: background 0.15s;
     }
     .data-item:hover { background-color: #121e36; }
     .data-item.active {
@@ -198,7 +203,7 @@
     /* Canvas Preview */
     #previewCanvas {
       width: 100%;
-      max-width: 250px;
+      max-width: 240px;
       height: auto;
       border-radius: 8px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.8);
@@ -212,10 +217,8 @@
       font-weight: 700;
     }
 
-    .btn-modern {
-      background-color: #121b2d;
-      color: var(--text-main);
-      border: 1px solid #1e293b;
+    /* Button Hierarchy */
+    .btn-action {
       font-size: 0.75rem;
       font-weight: 600;
       padding: 7px 12px;
@@ -227,45 +230,73 @@
       cursor: pointer;
       width: 100%;
       transition: all 0.2s ease;
+      border: 1px solid transparent;
     }
-    .btn-modern:hover { background-color: #1a2744; color: #fff; }
 
-    .btn-modern-primary {
+    .btn-action-primary {
       background: linear-gradient(135deg, #2563eb, #1d4ed8);
       color: #ffffff;
-      border: none;
-      font-weight: 700;
     }
-    .btn-modern-primary:hover { background: linear-gradient(135deg, #1d4ed8, #1e40af); }
+    .btn-action-primary:hover {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+      color: #fff;
+    }
 
-    .btn-modern-danger {
+    .btn-action-success {
+      background: linear-gradient(135deg, #059669, #047857);
+      color: #ffffff;
+    }
+    .btn-action-success:hover {
+      background: linear-gradient(135deg, #047857, #065f46);
+      color: #fff;
+    }
+
+    .btn-action-secondary {
+      background-color: #121b2d;
+      color: var(--text-main);
+      border-color: #1e293b;
+    }
+    .btn-action-secondary:hover {
+      background-color: #1a2744;
+      color: #fff;
+    }
+
+    .btn-action-danger {
       background-color: rgba(239, 68, 68, 0.08);
       color: #f87171;
-      border: 1px solid rgba(248, 113, 113, 0.2);
+      border-color: rgba(248, 113, 113, 0.2);
     }
-    .btn-modern-danger:hover { background-color: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+    .btn-action-danger:hover {
+      background-color: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+    }
 
-    @media (min-width: 992px) {
-      .sticky-col { position: sticky; top: 12px; }
+    .info-box {
+      background-color: rgba(0, 216, 246, 0.05);
+      border: 1px solid rgba(0, 216, 246, 0.2);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 0.7rem;
+      color: #94a3b8;
     }
   </style>
 </head>
 <body class="pb-4">
 
-  <!-- HEADER -->
+  <!-- HEADER APLIKASI -->
   <header class="app-header mb-3">
     <div class="container-fluid px-2">
       <div class="d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-2">
-          <div class="bg-primary text-white rounded-2 p-1 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
-            <i class="fa-solid fa-id-card"></i>
+          <div class="bg-primary text-white rounded-2 p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+            <i class="fa-solid fa-id-card fs-6"></i>
           </div>
           <div>
-            <h6 class="fw-bold mb-0 text-white" style="font-size: 0.9rem;">ID Card Generator & Masking Control</h6>
-            <small class="text-muted" style="font-size: 0.65rem;">Sistem Cetak ID Card Otomatis dengan Pengaturan Foto Terkunci (Locked Circle/Masking)</small>
+            <h6 class="fw-bold mb-0 text-white" style="font-size: 0.95rem;">ID Card Generator & Masking Control</h6>
+            <small class="text-muted" style="font-size: 0.68rem;">Sistem Cetak ID Card Otomatis dengan Pengaturan Foto Terkunci (Locked Circle/Masking)</small>
           </div>
         </div>
-        <span class="badge bg-dark border border-secondary text-info px-3 py-1" style="font-size:0.7rem;">
+        <span class="badge bg-dark border border-secondary text-info px-3 py-2" style="font-size:0.7rem;">
           <i class="fa-solid fa-circle-check text-success me-1"></i> System Ready
         </span>
       </div>
@@ -275,61 +306,56 @@
   <div class="container-fluid px-3">
     <div class="row g-3">
       
-      <!-- SISI KIRI: INPUT DATABASE, TEMPLATE, & DATA -->
+      <!-- KOLOM KIRI: INPUT WORKFLOW (STEP 1 HINGGA STEP 4) -->
       <div class="col-lg-5">
         
         <!-- STEP 1 & 2: DATABASE & TEMPLATE BACKGROUND -->
         <div class="row g-2 mb-2">
           <div class="col-6">
-            <div class="card-custom p-2 h-100">
+            <div class="card-custom p-3 h-100">
               <div class="step-header mb-2"><span class="badge-step">1</span> DATABASE (.XLSX / .CSV)</div>
               <div class="file-input-wrapper">
                 <label for="excelInput" class="file-input-btn">Choose File</label>
-                <span class="file-input-label" id="excelLabel">Database ID ...- Sheet1.csv</span>
+                <span class="file-input-label" id="excelLabel">Database ID...</span>
                 <input type="file" id="excelInput" hidden accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)">
               </div>
             </div>
           </div>
           <div class="col-6">
-            <div class="card-custom p-2 h-100">
+            <div class="card-custom p-3 h-100">
               <div class="step-header mb-2"><span class="badge-step">2</span> TEMPLATE BACKGROUND</div>
               <div class="file-input-wrapper">
                 <label for="templateInput" class="file-input-btn">Choose File</label>
-                <span class="file-input-label" id="templateLabel">ID CARD 67... 1063 px.png</span>
+                <span class="file-input-label" id="templateLabel">ID CARD 67...</span>
                 <input type="file" id="templateInput" hidden accept="image/*" onchange="handleTemplateUpload(event)">
               </div>
             </div>
           </div>
         </div>
 
-        <!-- STEP 4: PILIH DATA ANGGOTA -->
+        <!-- STEP 3: PILIH DATA ANGGOTA -->
         <div class="card-custom p-3 mb-2">
-          <div class="step-header mb-2"><span class="badge-step">4</span> PILIH DATA ANGGOTA</div>
-          <input type="text" id="searchInput" class="form-control mb-2" placeholder="Cari Nama / NIK..." oninput="filterDataList()">
+          <div class="step-header mb-2"><span class="badge-step">3</span> PILIH DATA ANGGOTA</div>
+          <input type="text" id="searchInput" class="form-control mb-2" placeholder="Cari Nama / NIK / Unit..." oninput="filterDataList()">
           <div class="list-group data-list" id="dataListContainer">
-            <div class="list-group-item data-item text-muted text-center py-3">Unggah file Excel/CSV untuk menampilkan daftar data...</div>
+            <div class="list-group-item data-item text-muted text-center py-3">Unggah file Excel/CSV untuk melihat daftar anggota...</div>
           </div>
         </div>
 
-      </div>
-
-      <!-- SISI KANAN: STEP 5 & PREVIEW CONTROL PANEL -->
-      <div class="col-lg-7">
-        
-        <!-- STEP 5: AMBIL / UNGGAH FOTO FOKUS (TERMASUK STEP 3 EMBEDDED) -->
-        <div class="card-custom p-3 mb-3 border-primary border-opacity-25" style="box-shadow: 0 0 15px rgba(37, 99, 235, 0.15);">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <div class="step-header"><span class="badge-step">5</span> AMBIL / UNGGAH FOTO FOKUS</div>
-            
-            <!-- STEP 3 EMBEDDED -->
-            <div class="d-flex align-items-center gap-1 bg-dark p-1 rounded border border-secondary border-opacity-25">
-              <span class="badge bg-primary text-white" style="font-size:0.6rem;">3</span>
-              <small class="text-muted fw-bold me-1" style="font-size:0.62rem;">INPUT KAMERA WEB / USB</small>
-              <select id="cameraSelect" class="form-select form-select-sm py-0 text-muted" style="max-width: 130px; font-size:0.68rem; height: 24px;"></select>
-              <button class="btn-modern btn-modern-primary py-0 px-2" style="font-size:0.68rem; height: 24px;" onclick="startCamera()">
-                <i class="fa-solid fa-video me-1"></i> Aktifkan Kamera
-              </button>
+        <!-- STEP 4: AMBIL / UNGGAH FOTO FOKUS -->
+        <div class="card-custom p-3">
+          <div class="step-header mb-2"><span class="badge-step">4</span> AMBIL / UNGGAH FOTO</div>
+          
+          <!-- PILIH KAMERA -->
+          <div class="p-2 rounded bg-dark border border-secondary border-opacity-25 mb-2 d-flex align-items-center justify-content-between gap-2">
+            <div class="d-flex align-items-center gap-1">
+              <i class="fa-solid fa-video text-info me-1" style="font-size:0.75rem;"></i>
+              <small class="text-muted fw-bold" style="font-size:0.65rem;">KAMERA:</small>
             </div>
+            <select id="cameraSelect" class="form-select form-select-sm py-0 text-muted" style="max-width: 150px; font-size:0.68rem; height: 26px;"></select>
+            <button class="btn-action btn-action-primary py-1 px-2" style="font-size:0.68rem; height: 26px; width: auto;" onclick="startCamera()">
+              Aktifkan
+            </button>
           </div>
 
           <div class="d-flex align-items-center gap-3">
@@ -339,16 +365,16 @@
             </div>
 
             <div class="d-flex flex-column gap-2 w-100">
-              <button class="btn-modern btn-modern-primary" onclick="capturePhoto()">
+              <button class="btn-action btn-action-primary py-2" onclick="capturePhoto()">
                 <i class="fa-solid fa-camera"></i> Tangkap Kamera
               </button>
               
-              <label class="btn-modern m-0">
+              <label class="btn-action btn-action-secondary m-0 py-2">
                 <i class="fa-solid fa-image text-info"></i> Unggah Foto Baru
                 <input type="file" id="singlePhotoInput" hidden accept="image/*" onchange="handleSinglePhotoUpload(event)">
               </label>
 
-              <label class="btn-modern m-0">
+              <label class="btn-action btn-action-secondary m-0 py-2">
                 <i class="fa-solid fa-folder-open text-warning"></i> Bulk Folder Foto
                 <input type="file" hidden webkitdirectory directory multiple onchange="handleFolderUpload(event)">
               </label>
@@ -356,34 +382,39 @@
           </div>
         </div>
 
-        <!-- PREVIEW REAL-TIME & KONTROL BINGKAI -->
-        <div class="card-custom p-3">
+      </div>
+
+      <!-- KOLOM KANAN: STEP 5 (PREVIEW & PENGATURAN MASKING/LAYOUT) -->
+      <div class="col-lg-7">
+        <div class="card-custom p-3 h-100">
           
-          <!-- HEADER PREVIEW & TARGET NAME -->
+          <!-- HEADER STEP 5 & INFO ANGGOTA -->
           <div class="d-flex justify-content-between align-items-center w-100 mb-2 border-bottom border-secondary border-opacity-25 pb-2">
-            <h6 class="fw-bold text-uppercase text-light mb-0" style="font-size:0.75rem;">
-              <i class="fa-solid fa-eye text-info me-1"></i> Preview Real-Time
-            </h6>
+            <div class="step-header">
+              <span class="badge-step">5</span> PREVIEW REAL-TIME & PENGATURAN
+            </div>
             <div class="target-badge" id="targetInfo">
-              <i class="fa-solid fa-user me-1"></i> ARTATI PUSPITA HURA ('00506.0726)
+              <i class="fa-solid fa-user-check me-1"></i> ARTATI PUSPITA HURA ('00506.0726)
             </div>
           </div>
 
+          <!-- PANDUAN RINGKAS PENGATURAN FOTO -->
+          <div class="info-box mb-3">
+            <i class="fa-solid fa-circle-info text-info me-1"></i>
+            <strong>Pengaturan Foto:</strong> Gunakan kontrol slider di bawah untuk menyesuaikan posisi zoom, pergeseran foto, dan ukuran bingkai agar pas di dalam area masking ID Card.
+          </div>
+
           <div class="row g-3">
-            <!-- CANVAS PREVIEW -->
+            <!-- PREVIEW CANVAS -->
             <div class="col-md-5 d-flex flex-column align-items-center justify-content-start">
               <canvas id="previewCanvas" width="673" height="1063"></canvas>
             </div>
 
-            <!-- KONTROL BINGKAI & FOTO -->
+            <!-- KONTROL SLIDER & EXPORT -->
             <div class="col-md-7">
               
-              <div class="step-header text-info mb-2" style="font-size:0.68rem;">
-                <i class="fa-solid fa-sliders"></i> POSISI & UKURAN BINGKAI LINGKARAN & TEKS
-              </div>
-
               <!-- PRESET, BENTUK, FOOTER -->
-              <div class="row g-1 mb-2">
+              <div class="row g-2 mb-2">
                 <div class="col-4">
                   <label class="form-label small text-muted m-0" style="font-size:0.63rem;">Preset Layout</label>
                   <select id="presetSelect" class="form-select form-select-sm py-1" onchange="renderCard()">
@@ -404,22 +435,22 @@
                 </div>
               </div>
 
-              <!-- BINGKAI CONTAINER (TERKUNCI SCALE) -->
+              <!-- BINGKAI CONTAINER -->
               <div class="p-2 rounded mb-2" style="background-color: rgba(0, 216, 246, 0.03); border: 1px dashed rgba(0, 216, 246, 0.25);">
                 <small class="fw-bold text-info d-block mb-1" style="font-size:0.65rem;">
-                  <i class="fa-solid fa-circle-notch me-1"></i> BINGKAI LINGKARAN / MASKING CONTAINER (TERKUNCI)
+                  <i class="fa-solid fa-circle-notch me-1"></i> ATUR BINGKAI MASKING CONTAINER
                 </small>
                 <div class="row g-2">
                   <div class="col-6">
                     <div class="d-flex justify-content-between align-items-center">
-                      <label class="form-label small text-muted m-0" style="font-size:0.63rem;">Ukuran Bingkai</label>
+                      <label class="form-label small text-muted m-0" style="font-size:0.62rem;">Ukuran Bingkai</label>
                       <input type="number" id="maskSizeNum" class="form-control p-0 input-preset-num" style="width:38px;" min="60" max="400" value="250" oninput="syncNumToSlider('maskSize', 'maskSizeNum')">
                     </div>
                     <input type="range" class="form-range" id="maskSize" min="60" max="400" value="250" oninput="syncSliderToNum('maskSize', 'maskSizeNum')">
                   </div>
                   <div class="col-6">
                     <div class="d-flex justify-content-between align-items-center">
-                      <label class="form-label small text-muted m-0" style="font-size:0.63rem;">Posisi Bingkai Y</label>
+                      <label class="form-label small text-muted m-0" style="font-size:0.62rem;">Posisi Vertikal (Y)</label>
                       <input type="number" id="maskYNum" class="form-control p-0 input-preset-num" style="width:38px;" min="-150" max="220" value="0" oninput="syncNumToSlider('maskY', 'maskYNum')">
                     </div>
                     <input type="range" class="form-range" id="maskY" min="-150" max="220" value="0" oninput="syncSliderToNum('maskY', 'maskYNum')">
@@ -427,12 +458,12 @@
                 </div>
               </div>
 
-              <!-- ISI FOTO DI DALAM LINGKARAN (LOCKED CIRCLE) -->
+              <!-- ISI FOTO DI DALAM MASKING -->
               <div class="p-2 rounded mb-2" style="background-color: rgba(37, 99, 235, 0.03); border: 1px dashed rgba(37, 99, 235, 0.25);">
                 <small class="fw-bold text-primary d-block mb-1" style="font-size:0.65rem;">
-                  <i class="fa-solid fa-image me-1"></i> ISI FOTO DI DALAM LINGKARAN (LOCKED CIRCLE)
+                  <i class="fa-solid fa-image me-1"></i> TRANSFORMASI FOTO (TERKUNCI DALAM MASKING)
                 </small>
-                <div class="row g-1">
+                <div class="row g-2">
                   <div class="col-4">
                     <div class="d-flex justify-content-between align-items-center">
                       <label class="form-label small text-muted m-0" style="font-size:0.6rem;">Zoom / Skala</label>
@@ -460,22 +491,22 @@
               <!-- POSISI TEKS Y -->
               <div class="mb-3">
                 <div class="d-flex justify-content-between align-items-center">
-                  <label class="form-label small text-muted m-0" style="font-size:0.63rem;">Posisi Teks Y</label>
+                  <label class="form-label small text-muted m-0" style="font-size:0.63rem;">Posisi Teks Vertikal (Y)</label>
                   <input type="number" id="textYNum" class="form-control p-0 input-preset-num" style="width:38px;" min="-50" max="320" value="0" oninput="syncNumToSlider('textY', 'textYNum')">
                 </div>
                 <input type="range" class="form-range" id="textY" min="-50" max="320" value="0" oninput="syncSliderToNum('textY', 'textYNum')">
               </div>
 
-              <!-- TOMBOL UNDUH / AKSI -->
+              <!-- TOMBOL UNDUH / AKSI EXPORT -->
               <div class="d-flex flex-column gap-1">
-                <button class="btn-modern btn-modern-primary py-2" onclick="downloadSingleCard()">
-                  <i class="fa-solid fa-download"></i> Unduh PNG
+                <button class="btn-action btn-action-primary py-2" onclick="downloadSingleCard()">
+                  <i class="fa-solid fa-download"></i> Unduh PNG Single
                 </button>
-                <button class="btn-modern py-2" onclick="downloadZipBatch()">
-                  <i class="fa-solid fa-file-zipper text-info"></i> Unduh ZIP Batch
+                <button class="btn-action btn-action-success py-2" onclick="downloadZipBatch()">
+                  <i class="fa-solid fa-file-zipper"></i> Unduh ZIP Batch (Semua Data)
                 </button>
-                <button class="btn-modern btn-modern-danger py-1" onclick="deleteCurrentPhoto()">
-                  <i class="fa-solid fa-trash"></i> Hapus Foto
+                <button class="btn-action btn-action-danger py-1 mt-1" onclick="deleteCurrentPhoto()">
+                  <i class="fa-solid fa-trash"></i> Hapus Foto Terpilih
                 </button>
               </div>
 
@@ -483,7 +514,6 @@
           </div>
 
         </div>
-
       </div>
 
     </div>
@@ -755,7 +785,6 @@
       }
     }
 
-    /* FUNGSI PENARIKAN FOTO TERTRANSFORMASI DI DALAM MASKING TERKUNCI */
     function drawTransformedImage(ctx, img, centerX, centerY, maskDim, zoomPercent, offsetX, offsetY) {
       const zoom = zoomPercent / 100;
       const imgAspect = img.width / img.height;
@@ -817,7 +846,6 @@
       const centerY = 425 + maskY;
       const radius = maskSize / 2;
 
-      // CONTAINER MASKING TERKUNCI (CIRCLE / ROUNDED SQUARE)
       ctx.save();
       ctx.beginPath();
 
@@ -842,7 +870,7 @@
         img.crossOrigin = "anonymous";
         img.onload = function() {
           ctx.save();
-          ctx.clip(); // FOTO DILAPISI MASKING TERKUNCI
+          ctx.clip();
           drawTransformedImage(ctx, img, centerX, centerY, maskSize, photoZoom, photoX, photoY);
           ctx.restore();
 
@@ -862,7 +890,7 @@
       ctx.textAlign = "center";
       const fontDinBold = "'DIN Bold', 'DIN-Bold', 'DINCondensed-Bold', 'Arial Narrow', sans-serif";
 
-      // Nama Lengkap
+      // Nama
       const namaText = (data.nama || 'NAMA PESERTA').toUpperCase();
       ctx.save();
       ctx.fillStyle = "#0f172a";
@@ -873,7 +901,7 @@
       ctx.fillText(namaText, 336.5, 595 + textYOffset);
       ctx.restore();
 
-      // Detail Teks Data
+      // Detail Data
       ctx.font = `bold 24px ${fontDinBold}`;
       ctx.fillStyle = "#64748b";
 
@@ -912,7 +940,7 @@
         console.warn("Error rendering barcode:", err);
       }
 
-      // Teks Footer
+      // Footer
       const footerVal = document.getElementById('footerInput') ? document.getElementById('footerInput').value : '';
       if (footerVal) {
         ctx.save();
