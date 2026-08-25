@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ID Card Generator & Masking Fix</title>
+  <title>ID Card Generator - Athalia System</title>
+  <!-- Library html2canvas untuk fitur Unduh PNG -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -19,7 +21,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 20px;
+      padding: 24px;
     }
 
     .dashboard {
@@ -49,49 +51,70 @@
     .section-title {
       font-size: 13px;
       font-weight: 700;
-      color: #e2e8f0;
+      color: #38bdf8;
       letter-spacing: 0.5px;
       display: flex;
       align-items: center;
       gap: 8px;
+      margin-bottom: 12px;
     }
 
-    .section-title span {
-      color: #3b82f6;
-    }
-
-    .controls-group {
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
       background-color: #0d152b;
       border: 1px solid #1b294a;
       border-radius: 8px;
       padding: 16px;
+    }
+
+    .input-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    input[type="text"], input[type="file"] {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: #3b82f6;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
     }
 
     .control-item {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
 
     .control-label {
-      font-size: 12px;
+      font-size: 11px;
       color: #94a3b8;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .control-label strong {
-      color: #ffffff;
-    }
-
-    .slider-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    .unit-box {
+      background: #1e293b;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #38bdf8;
     }
 
     input[type="range"] {
@@ -100,17 +123,7 @@
       cursor: pointer;
     }
 
-    .unit-box {
-      background: #1e293b;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      color: #38bdf8;
-      min-width: 45px;
-      text-align: right;
-    }
-
-    /* PREVIEW CONTAINER */
+    /* PREVIEW PANEL */
     .preview-panel {
       background-color: #111c38;
       border: 1px solid #1e2d54;
@@ -123,43 +136,43 @@
       gap: 16px;
     }
 
-    /* ID CARD STYLING */
+    /* ID CARD DISPLAY */
     .id-card {
-      width: 270px;
-      height: 420px;
+      width: 280px;
+      height: 440px;
       background-color: #ffffff;
       border-radius: 16px;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
       position: relative;
       overflow: hidden;
       color: #1e293b;
+      flex-shrink: 0;
     }
 
-    /* Header Background Artwork */
     .card-header-bg {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 160px;
-      background: linear-gradient(135deg, #0f4c81 0%, #1e3a8a 100%);
+      background: linear-gradient(135deg, #0a3d62 0%, #001233 100%);
       clip-path: polygon(0 0, 100% 0, 100% 70%, 0 100%);
     }
 
     .card-header-accent {
       position: absolute;
-      top: 0;
-      right: 0;
-      width: 120px;
+      top: -10px;
+      right: -20px;
+      width: 150px;
       height: 180px;
-      background: #10b981;
-      clip-path: ellipse(80% 50% at 90% 20%);
-      opacity: 0.8;
+      background: #2ec4b6;
+      clip-path: ellipse(70% 50% at 80% 20%);
+      opacity: 0.85;
     }
 
     .brand-logo {
       position: absolute;
-      top: 24px;
+      top: 20px;
       width: 100%;
       text-align: center;
       color: white;
@@ -167,20 +180,26 @@
     }
 
     .brand-logo h3 {
-      font-size: 16px;
+      font-size: 14px;
+      letter-spacing: 2px;
+      font-weight: 700;
+    }
+
+    .brand-logo p {
+      font-size: 8px;
+      opacity: 0.8;
       letter-spacing: 1px;
     }
 
-    /* FIX MASKING LINGKARAN (CORE SOLUTION) */
+    /* FIX MASKING LINGKARAN (PERMANEN) */
     .circle-avatar-wrapper {
       position: absolute;
       left: 50%;
-      /* Dynamic width, height, top, and transform calculated via JS */
       border-radius: 50%;
-      overflow: hidden; /* MENGUNCI FOTO TETAP LINGKARAN */
+      overflow: hidden; /* Mengunci foto agar SELALU berbentuk lingkaran */
       border: 4px solid #ffffff;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-      background-color: #e2e8f0;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      background-color: #cbd5e1;
       z-index: 3;
     }
 
@@ -191,7 +210,6 @@
       transform-origin: center center;
     }
 
-    /* Text details section */
     .card-details {
       position: absolute;
       width: 100%;
@@ -201,31 +219,53 @@
     }
 
     .card-details h2 {
-      font-size: 15px;
+      font-size: 14px;
       color: #0f172a;
       font-weight: 800;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
     }
 
     .card-details p {
-      font-size: 11px;
-      color: #64748b;
+      font-size: 10px;
+      color: #475569;
       line-height: 1.4;
+      font-weight: 600;
+    }
+
+    .barcode-container {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
     }
 
     .barcode {
-      margin-top: 12px;
-      height: 35px;
+      height: 32px;
       background: repeating-linear-gradient(
         90deg,
         #000,
         #000 2px,
         #fff 2px,
-        #fff 4px
+        #fff 4px,
+        #000 4px,
+        #000 7px
       );
-      width: 75%;
-      margin-left: auto;
-      margin-right: auto;
+      width: 70%;
+    }
+
+    .barcode-sub {
+      font-size: 7px !important;
+      color: #94a3b8 !important;
+    }
+
+    /* ACTION BUTTONS */
+    .btn-group {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
     .btn {
@@ -233,11 +273,16 @@
       padding: 10px;
       border: none;
       border-radius: 6px;
-      background-color: #2563eb;
-      color: white;
       font-weight: 600;
+      font-size: 13px;
       cursor: pointer;
+      transition: all 0.2s;
     }
+
+    .btn-primary { background-color: #2563eb; color: white; }
+    .btn-primary:hover { background-color: #1d4ed8; }
+    .btn-danger { background-color: #ef4444; color: white; }
+    .btn-danger:hover { background-color: #dc2626; }
   </style>
 </head>
 <body>
@@ -245,154 +290,204 @@
 <div class="dashboard">
   <!-- CONTROL PANEL -->
   <div class="panel">
+    
+    <!-- Step 1: Input Data -->
     <div>
-      <div class="section-title">
-        <span>🖼️</span> ISI FOTO DI DALAM LINGKARAN (LOCKED CIRCLE)
+      <div class="section-title">👤 DATA KARYAWAN</div>
+      <div class="form-group">
+        <input type="text" id="input-name" value="ARTATI PUSPITA HURA" placeholder="Nama Lengkap">
+        <div class="input-row">
+          <input type="text" id="input-nik" value="10506.0726" placeholder="NPP / NIK">
+          <input type="text" id="input-unit" value="PT - TK" placeholder="Unit / Divisi">
+        </div>
+        <input type="file" id="input-photo" accept="image/*">
       </div>
-      <div class="controls-group" style="margin-top: 10px;">
-        <div class="control-item">
-          <div class="control-label">
-            <span>Zoom / Skala Foto</span>
-            <div class="unit-box"><span id="val-zoom">100</span> %</div>
-          </div>
-          <input type="range" id="zoom" min="30" max="200" value="100">
-        </div>
+    </div>
 
-        <div class="control-item">
-          <div class="control-label">
-            <span>Geser Foto Y</span>
-            <div class="unit-box"><span id="val-photo-y">0</span> px</div>
+    <!-- Step 2: Crop & Zoom Foto -->
+    <div>
+      <div class="section-title">🖼️ PENGATURAN FOTO (LOCKED CIRCLE)</div>
+      <div class="form-group">
+        <div class="controls-grid">
+          <div class="control-item">
+            <div class="control-label">Zoom / Skala <span class="unit-box" id="val-zoom">100%</span></div>
+            <input type="range" id="zoom" min="30" max="250" value="100">
           </div>
-          <input type="range" id="photo-y" min="-100" max="100" value="0">
-        </div>
-
-        <div class="control-item">
-          <div class="control-label">
-            <span>Geser Foto X</span>
-            <div class="unit-box"><span id="val-photo-x">0</span> px</div>
+          <div class="control-item">
+            <div class="control-label">Geser Foto X <span class="unit-box" id="val-photo-x">0px</span></div>
+            <input type="range" id="photo-x" min="-100" max="100" value="0">
           </div>
-          <input type="range" id="photo-x" min="-100" max="100" value="0">
+          <div class="control-item">
+            <div class="control-label">Geser Foto Y <span class="unit-box" id="val-photo-y">0px</span></div>
+            <input type="range" id="photo-y" min="-100" max="100" value="0">
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- Step 3: Layout Bingkai & Teks -->
     <div>
-      <div class="section-title">
-        <span>⭕</span> POSISI & UKURAN BINGKAI LINGKARAN & TEKS
-      </div>
-      <div class="controls-group" style="margin-top: 10px;">
-        <div class="control-item">
-          <div class="control-label">
-            <span>Ukuran Lingkaran</span>
-            <div class="unit-box"><span id="val-circle-size">120</span> px</div>
+      <div class="section-title">📐 BINGKAI LINGKARAN & TEKS</div>
+      <div class="form-group">
+        <div class="controls-grid">
+          <div class="control-item">
+            <div class="control-label">Ukuran Bingkai <span class="unit-box" id="val-circle-size">120px</span></div>
+            <input type="range" id="circle-size" min="70" max="180" value="120">
           </div>
-          <input type="range" id="circle-size" min="60" max="180" value="120">
-        </div>
-
-        <div class="control-item">
-          <div class="control-label">
-            <span>Posisi Lingkaran Y</span>
-            <div class="unit-box"><span id="val-circle-y">100</span> px</div>
+          <div class="control-item">
+            <div class="control-label">Posisi Bingkai Y <span class="unit-box" id="val-circle-y">100px</span></div>
+            <input type="range" id="circle-y" min="50" max="200" value="100">
           </div>
-          <input type="range" id="circle-y" min="50" max="220" value="100">
-        </div>
-
-        <div class="control-item">
-          <div class="control-label">
-            <span>Posisi Teks Y</span>
-            <div class="unit-box"><span id="val-text-y">240</span> px</div>
+          <div class="control-item">
+            <div class="control-label">Posisi Teks Y <span class="unit-box" id="val-text-y">245px</span></div>
+            <input type="range" id="text-y" min="180" max="330" value="245">
           </div>
-          <input type="range" id="text-y" min="180" max="320" value="240">
         </div>
       </div>
     </div>
+
   </div>
 
   <!-- PREVIEW PANEL -->
   <div class="preview-panel">
-    <div class="id-card">
+    <div class="id-card" id="id-card-element">
       <div class="card-header-bg"></div>
       <div class="card-header-accent"></div>
       
       <div class="brand-logo">
         <h3>ATHALIA</h3>
+        <p>LIGHT FROM THE START</p>
       </div>
 
-      <!-- Mask Wrapper Fix -->
+      <!-- Container Masking Lingkaran -->
       <div class="circle-avatar-wrapper" id="avatar-wrapper">
-        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80" id="avatar-img" alt="Foto Karyawan">
+        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80" id="avatar-img" alt="Foto">
       </div>
 
       <div class="card-details" id="card-details">
-        <h2>ARTATI PUSPITA HURA</h2>
-        <p>NPP / NIK : 10506.0726</p>
-        <p>UNIT : PT - TK</p>
-        <div class="barcode"></div>
+        <h2 id="disp-name">ARTATI PUSPITA HURA</h2>
+        <p id="disp-nik">NPP / NIK : 10506.0726</p>
+        <p id="disp-unit">UNIT : PT - TK</p>
+        
+        <div class="barcode-container">
+          <div class="barcode"></div>
+          <p class="barcode-sub">www.athalia.sch.id</p>
+        </div>
       </div>
     </div>
 
-    <button class="btn">Unduh PNG</button>
+    <div class="btn-group">
+      <button class="btn btn-primary" id="btn-download">📥 Unduh PNG</button>
+      <button class="btn btn-danger" id="btn-reset">🔄 Reset Foto</button>
+    </div>
   </div>
 </div>
 
 <script>
-  // Elements
+  // DOM Elements - Inputs
+  const inputName = document.getElementById('input-name');
+  const inputNik = document.getElementById('input-nik');
+  const inputUnit = document.getElementById('input-unit');
+  const inputPhoto = document.getElementById('input-photo');
+
+  // DOM Elements - Sliders
   const zoomInput = document.getElementById('zoom');
-  const photoYInput = document.getElementById('photo-y');
   const photoXInput = document.getElementById('photo-x');
+  const photoYInput = document.getElementById('photo-y');
   const circleSizeInput = document.getElementById('circle-size');
   const circleYInput = document.getElementById('circle-y');
   const textYInput = document.getElementById('text-y');
 
+  // DOM Elements - Card Display
+  const dispName = document.getElementById('disp-name');
+  const dispNik = document.getElementById('disp-nik');
+  const dispUnit = document.getElementById('disp-unit');
   const avatarWrapper = document.getElementById('avatar-wrapper');
   const avatarImg = document.getElementById('avatar-img');
   const cardDetails = document.getElementById('card-details');
 
-  // Value Display Elements
+  // DOM Elements - Value Labels
   const valZoom = document.getElementById('val-zoom');
-  const valPhotoY = document.getElementById('val-photo-y');
   const valPhotoX = document.getElementById('val-photo-x');
+  const valPhotoY = document.getElementById('val-photo-y');
   const valCircleSize = document.getElementById('val-circle-size');
   const valCircleY = document.getElementById('val-circle-y');
   const valTextY = document.getElementById('val-text-y');
 
-  function updateCard() {
-    // 1. Image Inner Controls (Scale & Translate inside mask)
-    const zoomVal = zoomInput.value;
-    const photoXVal = photoXInput.value;
-    const photoYVal = photoYInput.value;
-    
-    avatarImg.style.transform = `scale(${zoomVal / 100}) translate(${photoXVal}px, ${photoYVal}px)`;
+  // Update Display Text
+  inputName.addEventListener('input', () => dispName.textContent = inputName.value || 'NAMA KARYAWAN');
+  inputNik.addEventListener('input', () => dispNik.textContent = `NPP / NIK : ${inputNik.value}`);
+  inputUnit.addEventListener('input', () => dispUnit.textContent = `UNIT : ${inputUnit.value}`);
 
-    // 2. Circle Container Controls (Outer Masking Box)
-    const circleSizeVal = circleSizeInput.value;
-    const circleYVal = circleYInput.value;
-    
-    avatarWrapper.style.width = `${circleSizeVal}px`;
-    avatarWrapper.style.height = `${circleSizeVal}px`;
-    avatarWrapper.style.top = `${circleYVal}px`;
-    avatarWrapper.style.transform = `translateX(-50%)`;
-
-    // 3. Text Position Controls
-    const textYVal = textYInput.value;
-    cardDetails.style.top = `${textYVal}px`;
-
-    // Update Text Labels
-    valZoom.textContent = zoomVal;
-    valPhotoY.textContent = photoYVal;
-    valPhotoX.textContent = photoXVal;
-    valCircleSize.textContent = circleSizeVal;
-    valCircleY.textContent = circleYVal;
-    valTextY.textContent = textYVal;
-  }
-
-  // Attach event listeners
-  [zoomInput, photoYInput, photoXInput, circleSizeInput, circleYInput, textYInput].forEach(input => {
-    input.addEventListener('input', updateCard);
+  // Custom Image Upload
+  inputPhoto.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        avatarImg.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
   });
 
-  // Initial call
-  updateCard();
+  // Slider Updates
+  function updateLayout() {
+    const zoom = zoomInput.value;
+    const px = photoXInput.value;
+    const py = photoYInput.value;
+    const size = circleSizeInput.value;
+    const cy = circleYInput.value;
+    const ty = textYInput.value;
+
+    // Apply Transformations
+    avatarImg.style.transform = `scale(${zoom / 100}) translate(${px}px, ${py}px)`;
+    
+    avatarWrapper.style.width = `${size}px`;
+    avatarWrapper.style.height = `${size}px`;
+    avatarWrapper.style.top = `${cy}px`;
+    avatarWrapper.style.transform = `translateX(-50%)`;
+
+    cardDetails.style.top = `${ty}px`;
+
+    // Update Label Values
+    valZoom.textContent = `${zoom}%`;
+    valPhotoX.textContent = `${px}px`;
+    valPhotoY.textContent = `${py}px`;
+    valCircleSize.textContent = `${size}px`;
+    valCircleY.textContent = `${cy}px`;
+    valTextY.textContent = `${ty}px`;
+  }
+
+  [zoomInput, photoXInput, photoYInput, circleSizeInput, circleYInput, textYInput].forEach(slider => {
+    slider.addEventListener('input', updateLayout);
+  });
+
+  // Reset Photo Transform
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    zoomInput.value = 100;
+    photoXInput.value = 0;
+    photoYInput.value = 0;
+    updateLayout();
+  });
+
+  // Download PNG Function
+  document.getElementById('btn-download').addEventListener('click', () => {
+    const cardNode = document.getElementById('id-card-element');
+    html2canvas(cardNode, {
+      scale: 3, // High resolution PNG
+      useCORS: true,
+      backgroundColor: null
+    }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = `ID_Card_${inputName.value.replace(/\s+/g, '_')}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+  });
+
+  // Initial Run
+  updateLayout();
 </script>
 
 </body>
