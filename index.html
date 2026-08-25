@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ID Card Generator & Masking Fix</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #0b1329;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+      max-width: 1100px;
+      width: 100%;
+    }
+
+    @media (max-width: 900px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background-color: #111c38;
+      border: 1px solid #1e2d54;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #e2e8f0;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title span {
+      color: #3b82f6;
+    }
+
+    .controls-group {
+      background-color: #0d152b;
+      border: 1px solid #1b294a;
+      border-radius: 8px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    .control-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-label {
+      font-size: 12px;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .control-label strong {
+      color: #ffffff;
+    }
+
+    .slider-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #3b82f6;
+      cursor: pointer;
+    }
+
+    .unit-box {
+      background: #1e293b;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #38bdf8;
+      min-width: 45px;
+      text-align: right;
+    }
+
+    .upload-btn {
+      background-color: #1d4ed8;
+      color: #ffffff;
+      border: 1px solid #3b82f6;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: background-color 0.2s;
+    }
+
+    .upload-btn:hover {
+      background-color: #2563eb;
+    }
+
+    /* PREVIEW CONTAINER */
+    .preview-panel {
+      background-color: #111c38;
+      border: 1px solid #1e2d54;
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    /* ID CARD STYLING */
+    .id-card {
+      width: 270px;
+      height: 420px;
+      background-color: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+      color: #1e293b;
+    }
+
+    /* Header Background Artwork */
+    .card-header-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 160px;
+      background: linear-gradient(135deg, #0f4c81 0%, #1e3a8a 100%);
+      clip-path: polygon(0 0, 100% 0, 100% 70%, 0 100%);
+    }
+
+    .card-header-accent {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 120px;
+      height: 180px;
+      background: #10b981;
+      clip-path: ellipse(80% 50% at 90% 20%);
+      opacity: 0.8;
+    }
+
+    .brand-logo {
+      position: absolute;
+      top: 24px;
+      width: 100%;
+      text-align: center;
+      color: white;
+      z-index: 2;
+    }
+
+    .brand-logo h3 {
+      font-size: 16px;
+      letter-spacing: 1px;
+    }
+
+    /* FIX MASKING LINGKARAN (CORE SOLUTION) */
+    .circle-avatar-wrapper {
+      position: absolute;
+      left: 50%;
+      border-radius: 50%;
+      overflow: hidden; /* MENGUNCI FOTO TETAP LINGKARAN */
+      border: 4px solid #ffffff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      background-color: #e2e8f0;
+      z-index: 3;
+    }
+
+    .circle-avatar-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform-origin: center center;
+    }
+
+    /* Text details section */
+    .card-details {
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      padding: 0 16px;
+      z-index: 2;
+    }
+
+    .card-details h2 {
+      font-size: 15px;
+      color: #0f172a;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+
+    .card-details p {
+      font-size: 11px;
+      color: #64748b;
+      line-height: 1.4;
+    }
+
+    .barcode {
+      margin-top: 12px;
+      height: 35px;
+      background: repeating-linear-gradient(
+        90deg,
+        #000,
+        #000 2px,
+        #fff 2px,
+        #fff 4px
+      );
+      width: 75%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background-color: #2563eb;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="dashboard">
+  <!-- CONTROL PANEL -->
+  <div class="panel">
+    <div>
+      <div class="section-title">
+        <span>🖼️</span> ISI FOTO DI DALAM LINGKARAN (LOCKED CIRCLE)
+      </div>
+      <div class="controls-group" style="margin-top: 10px;">
+        <!-- Fitur Unggah Foto Baru -->
+        <div class="control-item" style="grid-column: 1 / -1;">
+          <div class="control-label">
+            <span>Pilih / Unggah Foto</span>
+          </div>
+          <input type="file" id="photo-file" accept="image/*" style="display: none;">
+          <button type="button" class="upload-btn" onclick="document.getElementById('photo-file').click()">📷 Unggah Foto Baru</button>
+        </div>
+
+        <div class="control-item">
+          <div class="control-label">
+            <span>Zoom / Skala Foto</span>
+            <div class="unit-box"><span id="val-zoom">100</span> %</div>
+          </div>
+          <input type="range" id="zoom" min="30" max="200" value="100">
+        </div>
+
+        <div class="control-item">
+          <div class="control-label">
+            <span>Geser Foto Y</span>
+            <div class="unit-box"><span id="val-photo-y">0</span> px</div>
+          </div>
+          <input type="range" id="photo-y" min="-100" max="100" value="0">
+        </div>
+
+        <div class="control-item">
+          <div class="control-label">
+            <span>Geser Foto X</span>
+            <div class="unit-box"><span id="val-photo-x">0</span> px</div>
+          </div>
+          <input type="range" id="photo-x" min="-100" max="100" value="0">
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">
+        <span>⭕</span> POSISI & UKURAN BINGKAI LINGKARAN & TEKS
+      </div>
+      <div class="controls-group" style="margin-top: 10px;">
+        <div class="control-item">
+          <div class="control-label">
+            <span>Ukuran Lingkaran</span>
+            <div class="unit-box"><span id="val-circle-size">120</span> px</div>
+          </div>
+          <input type="range" id="circle-size" min="60" max="180" value="120">
+        </div>
+
+        <div class="control-item">
+          <div class="control-label">
+            <span>Posisi Lingkaran Y</span>
+            <div class="unit-box"><span id="val-circle-y">100</span> px</div>
+          </div>
+          <input type="range" id="circle-y" min="50" max="220" value="100">
+        </div>
+
+        <div class="control-item">
+          <div class="control-label">
+            <span>Posisi Teks Y</span>
+            <div class="unit-box"><span id="val-text-y">240</span> px</div>
+          </div>
+          <input type="range" id="text-y" min="180" max="320" value="240">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREVIEW PANEL -->
+  <div class="preview-panel">
+    <div class="id-card">
+      <div class="card-header-bg"></div>
+      <div class="card-header-accent"></div>
+      
+      <div class="brand-logo">
+        <h3>ATHALIA</h3>
+      </div>
+
+      <!-- Mask Wrapper Fix -->
+      <div class="circle-avatar-wrapper" id="avatar-wrapper">
+        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80" id="avatar-img" alt="Foto Karyawan">
+      </div>
+
+      <div class="card-details" id="card-details">
+        <h2>ARTATI PUSPITA HURA</h2>
+        <p>NPP / NIK : 10506.0726</p>
+        <p>UNIT : PT - TK</p>
+        <div class="barcode"></div>
+      </div>
+    </div>
+
+    <button class="btn">Unduh PNG</button>
+  </div>
+</div>
+
+<script>
+  // Elements
+  const zoomInput = document.getElementById('zoom');
+  const photoYInput = document.getElementById('photo-y');
+  const photoXInput = document.getElementById('photo-x');
+  const circleSizeInput = document.getElementById('circle-size');
+  const circleYInput = document.getElementById('circle-y');
+  const textYInput = document.getElementById('text-y');
+  const photoFileInput = document.getElementById('photo-file');
+
+  const avatarWrapper = document.getElementById('avatar-wrapper');
+  const avatarImg = document.getElementById('avatar-img');
+  const cardDetails = document.getElementById('card-details');
+
+  // Value Display Elements
+  const valZoom = document.getElementById('val-zoom');
+  const valPhotoY = document.getElementById('val-photo-y');
+  const valPhotoX = document.getElementById('val-photo-x');
+  const valCircleSize = document.getElementById('val-circle-size');
+  const valCircleY = document.getElementById('val-circle-y');
+  const valTextY = document.getElementById('val-text-y');
+
+  function updateCard() {
+    // 1. Image Inner Controls (Scale & Translate inside mask)
+    const zoomVal = zoomInput.value;
+    const photoXVal = photoXInput.value;
+    const photoYVal = photoYInput.value;
+    
+    avatarImg.style.transform = `scale(${zoomVal / 100}) translate(${photoXVal}px, ${photoYVal}px)`;
+
+    // 2. Circle Container Controls (Outer Masking Box)
+    const circleSizeVal = circleSizeInput.value;
+    const circleYVal = circleYInput.value;
+    
+    avatarWrapper.style.width = `${circleSizeVal}px`;
+    avatarWrapper.style.height = `${circleSizeVal}px`;
+    avatarWrapper.style.top = `${circleYVal}px`;
+    avatarWrapper.style.transform = `translateX(-50%)`;
+
+    // 3. Text Position Controls
+    const textYVal = textYInput.value;
+    cardDetails.style.top = `${textYVal}px`;
+
+    // Update Text Labels
+    valZoom.textContent = zoomVal;
+    valPhotoY.textContent = photoYVal;
+    valPhotoX.textContent = photoXVal;
+    valCircleSize.textContent = circleSizeVal;
+    valCircleY.textContent = circleYVal;
+    valTextY.textContent = textYVal;
+  }
+
+  // Handle Photo Upload
+  photoFileInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        avatarImg.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Attach event listeners
+  [zoomInput, photoYInput, photoXInput, circleSizeInput, circleYInput, textYInput].forEach(input => {
+    input.addEventListener('input', updateCard);
+  });
+
+  // Initial call
+  updateCard();
+</script>
+
+</body>
+</html>
