@@ -329,10 +329,10 @@
           <!-- PENGATURAN KONTROL RAPI & SISTEMATIS -->
           <div class="row g-2">
             
-            <!-- KELOMPOK 1: POSISI BINGKAI & TEKS -->
+            <!-- KELOMPOK 1: POSISI BINGKAI LINGKARAN MASK -->
             <div class="col-12">
               <div class="text-uppercase fw-bold text-info mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
-                <i class="fa-solid fa-vector-square me-1"></i> Posisi Bingkai & Teks ID Card
+                <i class="fa-solid fa-vector-square me-1"></i> Posisi & Ukuran Bingkai Lingkaran ID Card
               </div>
             </div>
 
@@ -354,35 +354,35 @@
                 <div class="control-header">
                   <span class="control-title"><i class="fa-solid fa-arrows-up-down text-info me-1"></i> Posisi Lingkaran Y</span>
                   <div class="unit-input-group">
-                    <input type="number" id="photoYNum" class="form-control num-input" min="-150" max="150" value="0" oninput="syncNumToSlider('photoY', 'photoYNum')">
+                    <input type="number" id="frameYNum" class="form-control num-input" min="-150" max="150" value="0" oninput="syncNumToSlider('frameY', 'frameYNum')">
                     <span class="unit-label">px</span>
                   </div>
                 </div>
-                <input type="range" class="form-range custom-range" id="photoY" min="-150" max="150" value="0" oninput="syncSliderToNum('photoY', 'photoYNum')">
+                <input type="range" class="form-range custom-range" id="frameY" min="-150" max="150" value="0" oninput="syncSliderToNum('frameY', 'frameYNum')">
               </div>
             </div>
 
             <div class="col-md-4 col-sm-6">
               <div class="control-card">
                 <div class="control-header">
-                  <span class="control-title"><i class="fa-solid fa-font text-info me-1"></i> Posisi Teks Y</span>
+                  <span class="control-title"><i class="fa-solid fa-arrows-left-right text-info me-1"></i> Posisi Lingkaran X</span>
                   <div class="unit-input-group">
-                    <input type="number" id="textYNum" class="form-control num-input" min="-50" max="250" value="0" oninput="syncNumToSlider('textY', 'textYNum')">
+                    <input type="number" id="frameXNum" class="form-control num-input" min="-150" max="150" value="0" oninput="syncNumToSlider('frameX', 'frameXNum')">
                     <span class="unit-label">px</span>
                   </div>
                 </div>
-                <input type="range" class="form-range custom-range" id="textY" min="-50" max="250" value="0" oninput="syncSliderToNum('textY', 'textYNum')">
+                <input type="range" class="form-range custom-range" id="frameX" min="-150" max="150" value="0" oninput="syncSliderToNum('frameX', 'frameXNum')">
               </div>
             </div>
 
-            <!-- KELOMPOK 2: PRESISI FOTO DI DALAM LINGKARAN -->
+            <!-- KELOMPOK 2: ZOOM & POSISI FOTO DI DALAM LINGKARAN (LOCKED CIRCLE) -->
             <div class="col-12 mt-2">
               <div class="text-uppercase fw-bold text-warning mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
-                <i class="fa-solid fa-image me-1"></i> Presisi Foto Di Dalam Lingkaran
+                <i class="fa-solid fa-image me-1"></i> Isi Foto Di Dalam Lingkaran (Locked Circle)
               </div>
             </div>
 
-            <div class="col-md-6 col-sm-6">
+            <div class="col-md-4 col-sm-6">
               <div class="control-card border-warning-subtle">
                 <div class="control-header">
                   <span class="control-title text-warning"><i class="fa-solid fa-magnifying-glass-plus me-1"></i> Zoom / Skala Foto</span>
@@ -395,16 +395,43 @@
               </div>
             </div>
 
-            <div class="col-md-6 col-sm-6">
+            <div class="col-md-4 col-sm-6">
               <div class="control-card border-warning-subtle">
                 <div class="control-header">
-                  <span class="control-title text-warning"><i class="fa-solid fa-up-down me-1"></i> Geser Posisi Foto Y</span>
+                  <span class="control-title text-warning"><i class="fa-solid fa-up-down me-1"></i> Geser Foto Y</span>
                   <div class="unit-input-group">
                     <input type="number" id="innerPhotoYNum" class="form-control num-input text-warning" min="-150" max="150" value="25" oninput="syncNumToSlider('innerPhotoY', 'innerPhotoYNum')">
                     <span class="unit-label text-warning">px</span>
                   </div>
                 </div>
                 <input type="range" class="form-range custom-range accent-warning" id="innerPhotoY" min="-150" max="150" value="25" oninput="syncSliderToNum('innerPhotoY', 'innerPhotoYNum')">
+              </div>
+            </div>
+
+            <div class="col-md-4 col-sm-6">
+              <div class="control-card border-warning-subtle">
+                <div class="control-header">
+                  <span class="control-title text-warning"><i class="fa-solid fa-left-right me-1"></i> Geser Foto X</span>
+                  <div class="unit-input-group">
+                    <input type="number" id="innerPhotoXNum" class="form-control num-input text-warning" min="-150" max="150" value="0" oninput="syncNumToSlider('innerPhotoX', 'innerPhotoXNum')">
+                    <span class="unit-label text-warning">px</span>
+                  </div>
+                </div>
+                <input type="range" class="form-range custom-range accent-warning" id="innerPhotoX" min="-150" max="150" value="0" oninput="syncSliderToNum('innerPhotoX', 'innerPhotoXNum')">
+              </div>
+            </div>
+
+            <!-- KELOMPOK 3: TEKS ID CARD -->
+            <div class="col-12 mt-2">
+              <div class="control-card">
+                <div class="control-header">
+                  <span class="control-title"><i class="fa-solid fa-font text-info me-1"></i> Posisi Teks ID Card Y</span>
+                  <div class="unit-input-group">
+                    <input type="number" id="textYNum" class="form-control num-input" min="-50" max="250" value="0" oninput="syncNumToSlider('textY', 'textYNum')">
+                    <span class="unit-label">px</span>
+                  </div>
+                </div>
+                <input type="range" class="form-range custom-range" id="textY" min="-50" max="250" value="0" oninput="syncSliderToNum('textY', 'textYNum')">
               </div>
             </div>
 
@@ -774,8 +801,8 @@
       }
     }
 
-    // FUNGSI UTAMA: MENGGAMBAR FOTO DENGAN FITUR ZOOM & SHIFT INSIDE CIRCLE
-    function drawImageCover(ctx, img, cx, cy, diameter, innerOffsetY = 0, innerScale = 1.0) {
+    // FUNGSI MENGGAMBAR FOTO PROPORSIONAL DENGAN ZOOM & GESER TERISOLASI
+    function drawImageCover(ctx, img, cx, cy, diameter, innerOffsetX = 0, innerOffsetY = 0, innerScale = 1.0) {
       const imgAspect = img.width / img.height;
       let baseW, baseH;
 
@@ -789,16 +816,16 @@
         baseH = diameter / imgAspect;
       }
 
-      // Terapkan Zoom Foto (innerScale)
+      // Terapkan Zoom Skala Foto
       const drawW = baseW * innerScale;
       const drawH = baseH * innerScale;
 
-      const drawX = cx - drawW / 2;
+      const drawX = (cx - drawW / 2) + innerOffsetX;
       
       let baseOffsetY = 0;
       if (imgAspect < 1) {
         const extraHeight = baseH - diameter;
-        baseOffsetY = extraHeight * 0.15; // default head-top offset
+        baseOffsetY = extraHeight * 0.15; // default anchor area kepala
       }
 
       const drawY = (cy - drawH / 2) + (baseOffsetY * innerScale) + innerOffsetY;
@@ -829,41 +856,50 @@
         photo: null
       };
 
+      // Control Parameter Values
       const frameScale = parseFloat(document.getElementById('frameScale').value) / 100;
-      const photoY = parseFloat(document.getElementById('photoY').value);
+      const frameX = parseFloat(document.getElementById('frameX').value);
+      const frameY = parseFloat(document.getElementById('frameY').value);
+      
       const innerScale = parseFloat(document.getElementById('innerScale').value) / 100;
+      const innerPhotoX = parseFloat(document.getElementById('innerPhotoX').value);
       const innerPhotoY = parseFloat(document.getElementById('innerPhotoY').value);
+      
       const textY = parseFloat(document.getElementById('textY').value);
 
+      // Hitung Lingkaran Terkunci
+      const centerX = 336.5 + frameX;
+      const centerY = 425 + frameY;
+      const radius = (250 * frameScale) / 2;
+      const diameter = radius * 2;
+
+      // 1. Kunci Area Pemotongan Lingkaran (Locked Mask)
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+
+      // 2. Isi background di dalam lingkaran agar bentuknya selalu bulat sempurna
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(centerX - radius - 10, centerY - radius - 10, diameter + 20, diameter + 20);
+
+      // 3. Gambar Foto Di Dalam Lingkaran
       if (activeData.photo) {
         const img = new Image();
         img.onload = function() {
-          ctx.save();
-          const centerX = 336.5;
-          const centerY = 425 + photoY;
-          const radius = (250 * frameScale) / 2;
-          const diameter = radius * 2;
-
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-          ctx.closePath();
-          ctx.clip();
-
-          // Panggil fungsi penempatan & zoom foto presisi
-          drawImageCover(ctx, img, centerX, centerY, diameter, innerPhotoY, innerScale);
-
+          drawImageCover(ctx, img, centerX, centerY, diameter, innerPhotoX, innerPhotoY, innerScale);
           ctx.restore();
           drawCardTextAndBarcode(ctx, activeData, preset, textY);
         };
         img.src = activeData.photo;
       } else {
-        ctx.save();
         ctx.fillStyle = "#cbd5e1";
         ctx.beginPath();
-        ctx.arc(336.5, 425 + photoY, (250 * frameScale) / 2, 0, Math.PI * 2);
+        ctx.arc(centerX, centerY, radius * 0.7, 0, Math.PI * 2);
         ctx.fill();
+
         ctx.restore();
-        
         drawCardTextAndBarcode(ctx, activeData, preset, textY);
       }
     }
@@ -969,10 +1005,19 @@
 
       const preset = document.getElementById('presetSelect').value;
       const frameScale = parseFloat(document.getElementById('frameScale').value) / 100;
-      const photoY = parseFloat(document.getElementById('photoY').value);
+      const frameX = parseFloat(document.getElementById('frameX').value);
+      const frameY = parseFloat(document.getElementById('frameY').value);
+      
       const innerScale = parseFloat(document.getElementById('innerScale').value) / 100;
+      const innerPhotoX = parseFloat(document.getElementById('innerPhotoX').value);
       const innerPhotoY = parseFloat(document.getElementById('innerPhotoY').value);
+      
       const textY = parseFloat(document.getElementById('textY').value);
+
+      const centerX = 336.5 + frameX;
+      const centerY = 425 + frameY;
+      const radius = (250 * frameScale) / 2;
+      const diameter = radius * 2;
 
       for (let item of completedItems) {
         offCtx.clearRect(0, 0, 673, 1063);
@@ -987,16 +1032,16 @@
           const img = new Image();
           img.onload = function() {
             offCtx.save();
-            const centerX = 336.5;
-            const centerY = 425 + photoY;
-            const radius = (250 * frameScale) / 2;
-            const diameter = radius * 2;
-
+            
             offCtx.beginPath();
             offCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            offCtx.closePath();
             offCtx.clip();
 
-            drawImageCover(offCtx, img, centerX, centerY, diameter, innerPhotoY, innerScale);
+            offCtx.fillStyle = "#ffffff";
+            offCtx.fillRect(centerX - radius - 10, centerY - radius - 10, diameter + 20, diameter + 20);
+
+            drawImageCover(offCtx, img, centerX, centerY, diameter, innerPhotoX, innerPhotoY, innerScale);
 
             offCtx.restore();
 
