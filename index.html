@@ -3,657 +3,1023 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ID Card Generator - Athalia System</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <title>Generator ID Card Karyawan & Pelajar</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- Google Fonts Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CDN Third-Party Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    @font-face {
+      font-family: 'DIN Bold';
+      src: local('DIN Bold'), local('DIN-Bold'), local('DINCondensed-Bold'), local('DIN Condensed'), local('Arial Narrow');
+    }
+
+    :root {
+      --bg-main: #0a0f1d;
+      --card-bg: #111827;
+      --card-border: #1f2937;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-teal: #14b8a6;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --input-bg: #030712;
     }
 
     body {
-      background-color: #0b1120;
-      color: #ffffff;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
     }
 
-    .app-container {
-      display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 20px;
-      max-width: 1280px;
-      width: 100%;
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track { background: var(--bg-main); }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+
+    /* Header Styling */
+    .app-header {
+      background: linear-gradient(180deg, #111827 0%, rgba(17, 24, 39, 0.8) 100%);
+      border-bottom: 1px solid var(--card-border);
+      backdrop-filter: blur(10px);
     }
 
-    @media (max-width: 1024px) {
-      .app-container {
-        grid-template-columns: 1fr;
-      }
+    /* Card Styling */
+    .card-custom {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+      transition: border-color 0.2s ease;
+    }
+    .card-custom:hover {
+      border-color: #374151;
     }
 
-    /* CARD PANELS */
-    .panel {
-      background-color: #111a2e;
-      border: 1px solid #1e2c48;
-      border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 20px;
-    }
-
-    .panel-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 11px;
+    .step-header {
+      font-size: 0.75rem;
       font-weight: 700;
-      color: #38bdf8;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
       margin-bottom: 14px;
-      text-transform: uppercase;
-    }
-
-    .badge-number {
-      background-color: #2563eb;
-      color: white;
-      font-weight: 700;
-      font-size: 11px;
-      width: 20px;
-      height: 20px;
-      border-radius: 4px;
       display: flex;
       align-items: center;
-      justify-content: center;
-    }
-
-    /* LEFT SIDE: SELECT KARYAWAN */
-    .search-input {
-      width: 100%;
-      background-color: #0b1120;
-      border: 1px solid #1e2c48;
-      color: #fff;
-      padding: 10px 12px;
-      border-radius: 6px;
-      font-size: 13px;
-      margin-bottom: 12px;
-      outline: none;
-    }
-
-    .search-input:focus {
-      border-color: #3b82f6;
-    }
-
-    .employee-item {
-      background-color: #1d3557;
-      border: 1px solid #2563eb;
-      border-radius: 6px;
-      padding: 10px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-    }
-
-    .employee-info {
-      font-size: 12px;
-      font-weight: 700;
-      color: #38bdf8;
-    }
-
-    .employee-info span {
-      color: #ffffff;
-    }
-
-    .badge-foto {
-      background-color: #10b981;
-      color: white;
-      font-size: 10px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* RIGHT SIDE: SETTINGS GRID */
-    .section-subtitle {
-      font-size: 11px;
-      font-weight: 700;
-      color: #f59e0b;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .section-subtitle.blue {
-      color: #38bdf8;
-    }
-
-    .controls-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    @media (max-width: 768px) {
-      .controls-row {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .control-card {
-      background-color: #0b1120;
-      border: 1px solid #1e2c48;
-      border-radius: 6px;
-      padding: 10px;
-    }
-
-    .control-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      font-size: 11px;
-      color: #f59e0b;
-      font-weight: 600;
-    }
-
-    .control-header.blue {
-      color: #38bdf8;
-    }
-
-    .value-badge {
-      background-color: #111a2e;
-      color: #ffffff;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    input[type="range"] {
-      width: 100%;
-      height: 4px;
-      background: #1e2c48;
-      border-radius: 2px;
-      outline: none;
-      appearance: none;
-      cursor: pointer;
-    }
-
-    /* Yellow Sliders */
-    .slider-yellow::-webkit-slider-thumb {
-      appearance: none;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #f59e0b;
-      cursor: pointer;
-    }
-
-    /* Blue Sliders */
-    .slider-blue::-webkit-slider-thumb {
-      appearance: none;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #38bdf8;
-      cursor: pointer;
-    }
-
-    /* PREVIEW PANEL */
-    .preview-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .target-badge {
-      background-color: #0b1120;
-      border: 1px solid #10b981;
-      color: #10b981;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 4px 12px;
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .preview-body {
-      display: flex;
-      gap: 24px;
-      align-items: flex-start;
-    }
-
-    @media (max-width: 640px) {
-      .preview-body {
-        flex-direction: column;
-        align-items: center;
-      }
-    }
-
-    /* ID CARD DESIGN */
-    .id-card {
-      width: 250px;
-      height: 390px;
-      background-color: #ffffff;
-      border-radius: 12px;
-      position: relative;
-      overflow: hidden;
-      color: #000;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-      flex-shrink: 0;
-    }
-
-    .card-bg-header {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 140px;
-      background: #0f386b;
-    }
-
-    .card-wave {
-      position: absolute;
-      top: 50px;
-      left: 0;
-      width: 100%;
-      height: 100px;
-      background: #7cc043;
-      clip-path: ellipse(100% 60% at 50% 100%);
-    }
-
-    .card-wave-white {
-      position: absolute;
-      top: 40px;
-      left: 0;
-      width: 100%;
-      height: 100px;
-      background: #ffffff;
-      clip-path: ellipse(110% 65% at 50% 100%);
-    }
-
-    .card-logo {
-      position: absolute;
-      top: 16px;
-      width: 100%;
-      text-align: center;
-      color: white;
-      z-index: 2;
-    }
-
-    .card-logo svg {
-      width: 28px;
-      height: 28px;
-      fill: white;
-    }
-
-    .card-logo div {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-
-    /* PERBAIKAN CORE: CONTAINER MASKING CIRCLE PERMANEN */
-    .circle-avatar-wrapper {
-      position: absolute;
-      left: 50%;
-      border-radius: 50%;
-      overflow: hidden; /* Mengunci foto agar SELALU berbentuk lingkaran */
-      border: 3px solid #ffffff;
-      background-color: #e2e8f0;
-      z-index: 3;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .circle-avatar-wrapper img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transform-origin: center center;
-    }
-
-    .card-info {
-      position: absolute;
-      width: 100%;
-      text-align: center;
-      padding: 0 10px;
-      z-index: 2;
-    }
-
-    .card-name {
-      font-size: 12px;
-      font-weight: 800;
-      color: #000000;
-      margin-bottom: 2px;
-      text-transform: uppercase;
-    }
-
-    .card-sub {
-      font-size: 8px;
-      color: #333333;
-      font-weight: 600;
-      line-height: 1.3;
-    }
-
-    .barcode-img {
-      margin-top: 8px;
-      width: 70%;
-      height: 28px;
-      background: repeating-linear-gradient(
-        90deg,
-        #000,
-        #000 2px,
-        #fff 2px,
-        #fff 4px,
-        #000 4px,
-        #000 6px
-      );
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .barcode-text {
-      font-size: 6px;
-      color: #666;
-      margin-top: 2px;
-    }
-
-    /* ACTION BUTTONS */
-    .action-buttons {
-      display: flex;
-      flex-direction: column;
       gap: 10px;
-      width: 180px;
     }
 
-    .btn {
-      padding: 10px 14px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .badge-step {
+      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      color: #fff;
+      border-radius: 8px;
+      padding: 3px 9px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+
+    /* Form Inputs */
+    .form-control, .form-select {
+      background-color: var(--input-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      font-size: 0.85rem;
+      border-radius: 10px;
+      padding: 8px 12px;
       transition: all 0.2s;
     }
 
-    .btn-blue {
-      background-color: #2563eb;
-      color: white;
+    .form-control:focus, .form-select:focus {
+      background-color: var(--input-bg);
+      border-color: var(--accent-cyan);
+      color: var(--text-main);
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
     }
 
-    .btn-blue:hover {
-      background-color: #1d4ed8;
+    .form-range {
+      height: 6px;
+    }
+    .form-range::-webkit-slider-thumb {
+      background: var(--accent-cyan);
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
     }
 
-    .btn-dark {
-      background-color: #1a263d;
-      color: #38bdf8;
-      border: 1px solid #2563eb;
+    .input-preset-num {
+      background-color: var(--input-bg) !important;
+      color: var(--accent-cyan) !important;
+      border: 1px solid var(--card-border) !important;
+      font-weight: 700;
+      font-size: 0.75rem;
+      border-radius: 6px;
     }
 
-    .btn-dark:hover {
-      background-color: #223352;
+    /* Camera Component */
+    .camera-wrapper {
+      position: relative;
+      width: 180px;
+      height: 220px;
+      background-color: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid var(--card-border);
+      flex-shrink: 0;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
     }
 
-    .btn-red {
+    #videoElement {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .crop-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 2px dashed var(--accent-cyan);
+      pointer-events: none;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+      transition: border-radius 0.3s ease, width 0.2s, height 0.2s;
+    }
+    .crop-overlay.circle { width: 130px; height: 130px; border-radius: 50%; }
+    .crop-overlay.rounded { width: 120px; height: 150px; border-radius: 16px; }
+    .crop-overlay.square { width: 120px; height: 150px; border-radius: 0%; }
+
+    /* Data List */
+    .data-list {
+      max-height: 230px;
+      overflow-y: auto;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+    }
+
+    .data-item {
+      background-color: var(--input-bg);
+      border: none;
+      border-bottom: 1px solid var(--card-border);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.85rem;
+    }
+    .data-item:last-child { border-bottom: none; }
+
+    .data-item:hover {
+      background-color: #1f2937;
+    }
+
+    .data-item.active {
+      background-color: #1e3a8a !important;
+      border-left: 4px solid var(--accent-cyan);
+    }
+
+    /* Preview Canvas */
+    #previewCanvas {
+      width: 100%;
+      max-width: 220px;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.7);
+      background: #ffffff;
+      flex-shrink: 0;
+      border: 1px solid var(--card-border);
+    }
+
+    .target-badge {
+      background-color: #1f2937;
+      color: var(--accent-cyan);
+      border: 1px solid #374151;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    /* Buttons */
+    .btn-action-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 220px;
+    }
+
+    .btn-modern {
+      background-color: #1f2937;
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 9px 14px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      text-decoration: none;
+      width: 100%;
+    }
+
+    .btn-modern:hover {
+      background-color: #374151;
+      color: #ffffff;
+      border-color: #4b5563;
+      transform: translateY(-1px);
+    }
+
+    .btn-modern-primary {
+      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      color: #ffffff;
+      border: none;
+      font-weight: 600;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-modern-primary:hover {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+    }
+
+    .btn-modern-danger {
       background-color: transparent;
-      color: #ef4444;
-      border: 1px solid #7f1d1d;
+      color: #f87171;
+      border: 1px solid rgba(248, 113, 113, 0.3);
     }
 
-    .btn-red:hover {
-      background-color: #450a0a;
+    .btn-modern-danger:hover {
+      background-color: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border-color: rgba(248, 113, 113, 0.5);
     }
 
-    .hidden-file-input {
-      display: none;
+    @media (min-width: 992px) {
+      .sticky-preview-col {
+        position: sticky;
+        top: 20px;
+      }
     }
   </style>
 </head>
-<body>
+<body class="pb-5">
 
-<div class="app-container">
-  
-  <!-- PANEL KIRI: SELEKSI DATA -->
-  <div>
-    <div class="panel">
-      <div class="panel-header">
-        <div class="badge-number">3</div>
-        PILIH DATA KARYAWAN / PELAJAR
-      </div>
-      
-      <input type="text" class="search-input" value="artat" id="search-box">
-      
-      <div class="employee-item" id="employee-card">
-        <div class="employee-info">
-          '00506.0726 — <span>ARTATI PUSPITA HURA</span> <small style="color: #64748b;">(PT - TK)</small>
+  <!-- Header App -->
+  <header class="app-header py-3 mb-4">
+    <div class="container-fluid px-4" style="max-width: 1400px;">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+          <div class="bg-primary text-white rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+            <i class="fa-solid fa-id-card fa-lg"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold mb-0 text-white" style="font-size: 1.1rem;">Generator ID Card Professional</h5>
+            <small class="text-muted" style="font-size: 0.75rem;">Sistem Cetak ID Card Karyawan & Pelajar Otomatis</small>
+          </div>
         </div>
-        <div class="badge-foto">✓ Foto</div>
+        <span class="badge bg-dark border border-secondary text-info px-3 py-2">
+          <i class="fa-solid fa-circle-check text-success me-1"></i> Ready
+        </span>
       </div>
+    </div>
+  </header>
+
+  <div class="container-fluid px-4" style="max-width: 1400px;">
+    <div class="row g-4">
+      
+      <!-- KOLOM 1: PRESET, INPUT & NAVIGASI (KIRI) -->
+      <div class="col-lg-7 col-xl-6">
+        
+        <!-- FITUR PRESET & MASKING CIRCLE -->
+        <div class="card-custom p-3 mb-3">
+          <div class="step-header">
+            <span class="badge-step"><i class="fa-solid fa-sliders"></i></span> PRESET LAYOUT & FITUR MASKING FOTO
+          </div>
+          
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-muted mb-1">Preset Layout:</label>
+              <select id="presetSelect" class="form-select" onchange="renderCard()">
+                <option value="karyawan" selected>ID Card Karyawan</option>
+                <option value="pelajar">ID Card Pelajar</option>
+              </select>
+            </div>
+
+            <!-- FITUR BARU: BENTUK MASKING FOTO (CIRCLE / ROUNDED / SQUARE) -->
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-info mb-1"><i class="fa-solid fa-circle-notch me-1"></i> Masking Foto:</label>
+              <select id="maskShapeSelect" class="form-select" onchange="updateMaskShape()">
+                <option value="circle" selected>Circle (Lingkaran)</option>
+                <option value="rounded">Rounded Square</option>
+                <option value="square">Persegi (Kotak)</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-muted mb-1">Teks Footer:</label>
+              <input type="text" id="footerInput" class="form-control" value="www.edueasy.id" placeholder="www.domain.com" oninput="renderCard()">
+            </div>
+          </div>
+
+          <!-- PENGATURAN SKALA & POSISI VISUAL -->
+          <div class="row g-2 mt-2 pt-2 border-top border-secondary border-opacity-25">
+            <div class="col-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small text-muted m-0" style="font-size:0.72rem;">Skala Foto</label>
+                <div class="input-group input-group-sm" style="width: 55px;">
+                  <input type="number" id="photoScaleNum" class="form-control text-end p-1 input-preset-num" min="50" max="200" value="100" oninput="syncNumToSlider('photoScale', 'photoScaleNum')">
+                </div>
+              </div>
+              <input type="range" class="form-range" id="photoScale" min="50" max="200" value="100" oninput="syncSliderToNum('photoScale', 'photoScaleNum')">
+            </div>
+
+            <div class="col-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small text-muted m-0" style="font-size:0.72rem;">Bingkai Y</label>
+                <div class="input-group input-group-sm" style="width: 55px;">
+                  <input type="number" id="photoYNum" class="form-control text-end p-1 input-preset-num" min="-150" max="150" value="0" oninput="syncNumToSlider('photoY', 'photoYNum')">
+                </div>
+              </div>
+              <input type="range" class="form-range" id="photoY" min="-150" max="150" value="0" oninput="syncSliderToNum('photoY', 'photoYNum')">
+            </div>
+
+            <div class="col-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small text-info m-0" style="font-size:0.72rem;">Isi Foto Y</label>
+                <div class="input-group input-group-sm" style="width: 55px;">
+                  <input type="number" id="innerPhotoYNum" class="form-control text-end p-1 input-preset-num" min="-100" max="100" value="25" oninput="syncNumToSlider('innerPhotoY', 'innerPhotoYNum')">
+                </div>
+              </div>
+              <input type="range" class="form-range" id="innerPhotoY" min="-100" max="100" value="25" oninput="syncSliderToNum('innerPhotoY', 'innerPhotoYNum')">
+            </div>
+
+            <div class="col-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small text-muted m-0" style="font-size:0.72rem;">Teks Y</label>
+                <div class="input-group input-group-sm" style="width: 55px;">
+                  <input type="number" id="textYNum" class="form-control text-end p-1 input-preset-num" min="-50" max="250" value="0" oninput="syncNumToSlider('textY', 'textYNum')">
+                </div>
+              </div>
+              <input type="range" class="form-range" id="textY" min="-50" max="250" value="0" oninput="syncSliderToNum('textY', 'textYNum')">
+            </div>
+          </div>
+        </div>
+
+        <!-- UPLOAD DATABASE & TEMPLATE -->
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <div class="card-custom p-3 h-100">
+              <div class="step-header"><span class="badge-step">1</span> DATABASE (.XLSX / .CSV)</div>
+              <input type="file" id="excelInput" class="form-control" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card-custom p-3 h-100">
+              <div class="step-header"><span class="badge-step">2</span> TEMPLATE BACKGROUND</div>
+              <input type="file" id="templateInput" class="form-control" accept="image/*" onchange="handleTemplateUpload(event)">
+            </div>
+          </div>
+        </div>
+
+        <!-- KAMERA & SELEKSI DAFTAR DATA -->
+        <div class="card-custom p-3 mb-3">
+          <div class="step-header"><span class="badge-step">3</span> INPUT KAMERA WEB / USB</div>
+          <div class="d-flex gap-2 align-items-center">
+            <select id="cameraSelect" class="form-select"></select>
+            <button class="btn-modern btn-modern-primary" style="width: auto; white-space: nowrap;" onclick="startCamera()">
+              <i class="fa-solid fa-video"></i> Aktifkan Kamera
+            </button>
+          </div>
+        </div>
+
+        <div class="card-custom p-3">
+          <div class="step-header"><span class="badge-step">4</span> PILIH DATA ANGGOTA</div>
+          <input type="text" id="searchInput" class="form-control mb-2" placeholder="Cari Nama / NIK / NPP / NISN..." oninput="filterDataList()">
+          <div class="list-group data-list" id="dataListContainer">
+            <div class="list-group-item data-item text-muted text-center py-4">Unggah file Excel/CSV untuk menampilkan daftar data...</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- KOLOM 2: AMBIL FOTO & PREVIEW CANAL HASIL (KANAN STICKY) -->
+      <div class="col-lg-5 col-xl-6">
+        <div class="sticky-preview-col">
+          
+          <!-- AMBIL / UNGGAH FOTO -->
+          <div class="card-custom p-3 mb-3">
+            <div class="step-header"><span class="badge-step">5</span> AMBIL / UNGGAH FOTO FOKUS</div>
+            
+            <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-sm-start gap-3 py-1">
+              <div class="camera-wrapper">
+                <video id="videoElement" autoplay playsinline></video>
+                <!-- Mask Overlay -->
+                <div id="cropOverlay" class="crop-overlay circle"></div>
+              </div>
+
+              <div class="btn-action-group">
+                <button class="btn-modern btn-modern-primary" onclick="capturePhoto()">
+                  <i class="fa-solid fa-camera"></i> Tangkap Kamera
+                </button>
+                
+                <label class="btn-modern m-0">
+                  <i class="fa-solid fa-file-image text-info"></i> Single Foto
+                  <input type="file" hidden accept="image/*" onchange="handleSinglePhotoUpload(event)">
+                </label>
+
+                <label class="btn-modern m-0">
+                  <i class="fa-solid fa-folder-open text-warning"></i> Bulk Folder Foto
+                  <input type="file" hidden webkitdirectory directory multiple onchange="handleFolderUpload(event)">
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- PREVIEW HASIL ID CARD -->
+          <div class="card-custom p-3">
+            <div class="d-flex justify-content-between align-items-center w-100 mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+              <h6 class="fw-bold text-uppercase text-light mb-0" style="font-size:0.8rem; letter-spacing: 0.5px;">
+                <i class="fa-solid fa-eye text-cyan me-1"></i> Preview Real-Time
+              </h6>
+              <span class="target-badge" id="targetInfo"><i class="fa-solid fa-user-tag me-1"></i> Belum Memilih Data</span>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-sm-start gap-4 py-1">
+              <!-- Canvas Preview -->
+              <canvas id="previewCanvas" width="673" height="1063"></canvas>
+
+              <div class="btn-action-group">
+                <button class="btn-modern btn-modern-primary" onclick="downloadSingleCard()">
+                  <i class="fa-solid fa-download"></i> Unduh PNG
+                </button>
+                <button class="btn-modern" onclick="downloadZipBatch()">
+                  <i class="fa-solid fa-file-zipper text-info"></i> Unduh ZIP Batch
+                </button>
+                <button class="btn-modern btn-modern-danger" onclick="deleteCurrentPhoto()">
+                  <i class="fa-solid fa-trash"></i> Hapus Foto
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- PANEL KANAN: PENGATURAN & PREVIEW -->
-  <div>
-    <!-- SECTION PENGATURAN SLIDER -->
-    <div class="panel">
-      <div class="panel-header" style="margin-bottom: 8px;">
-        ⚙ PENGATURAN BINGKAI, TEKS & FOTO
-      </div>
+  <canvas id="hiddenBarcodeCanvas" style="display:none;"></canvas>
 
-      <!-- ROW 1: FOTO -->
-      <div class="section-subtitle">
-        🖼 ISI FOTO DI DALAM LINGKARAN (LOCKED CIRCLE)
-      </div>
-      <div class="controls-row">
-        <div class="control-card">
-          <div class="control-header">
-            🔍 Zoom / Skala Foto
-            <span class="value-badge" id="val-zoom">86 %</span>
-          </div>
-          <input type="range" class="slider-yellow" id="zoom" min="30" max="200" value="86">
-        </div>
+  <script>
+    let databaseData = [];
+    let selectedIndex = -1;
+    let templateImage = new Image();
+    let currentStream = null;
 
-        <div class="control-card">
-          <div class="control-header">
-            ↕ Geser Foto Y
-            <span class="value-badge" id="val-photo-y">23 px</span>
-          </div>
-          <input type="range" class="slider-yellow" id="photo-y" min="-100" max="100" value="23">
-        </div>
+    window.onload = function() {
+      createBlankTemplate();
+    };
 
-        <div class="control-card">
-          <div class="control-header">
-            ↔ Geser Foto X
-            <span class="value-badge" id="val-photo-x">0 px</span>
-          </div>
-          <input type="range" class="slider-yellow" id="photo-x" min="-100" max="100" value="0">
-        </div>
-      </div>
+    function updateMaskShape() {
+      const shape = document.getElementById('maskShapeSelect').value;
+      const overlay = document.getElementById('cropOverlay');
+      overlay.className = `crop-overlay ${shape}`;
+      renderCard();
+    }
 
-      <!-- ROW 2: BINGKAI & TEKS -->
-      <div class="section-subtitle blue">
-        ⚙ POSISI & UKURAN BINGKAI LINGKARAN & TEKS ID CARD Y
-      </div>
-      <div class="controls-row" style="margin-bottom: 0;">
-        <div class="control-card">
-          <div class="control-header blue">
-            ⭕ Ukuran Lingkaran
-            <span class="value-badge" id="val-circle-size">131 %</span>
-          </div>
-          <input type="range" class="slider-blue" id="circle-size" min="60" max="180" value="131">
-        </div>
+    function syncSliderToNum(sliderId, numId) {
+      const sliderVal = document.getElementById(sliderId).value;
+      document.getElementById(numId).value = sliderVal;
+      renderCard();
+    }
 
-        <div class="control-card">
-          <div class="control-header blue">
-            ↕ Posisi Lingkaran Y
-            <span class="value-badge" id="val-circle-y">127 px</span>
-          </div>
-          <input type="range" class="slider-blue" id="circle-y" min="50" max="200" value="127">
-        </div>
+    function syncNumToSlider(sliderId, numId) {
+      const numInput = document.getElementById(numId);
+      const slider = document.getElementById(sliderId);
+      let val = parseInt(numInput.value);
+      
+      if (isNaN(val)) val = 0;
+      if (val < parseInt(slider.min)) val = parseInt(slider.min);
+      if (val > parseInt(slider.max)) val = parseInt(slider.max);
+      
+      slider.value = val;
+      renderCard();
+    }
 
-        <div class="control-card">
-          <div class="control-header blue">
-            A Posisi Teks Y (Nama, NIK, Unit)
-            <span class="value-badge" id="val-text-y">193 px</span>
-          </div>
-          <input type="range" class="slider-blue" id="text-y" min="150" max="280" value="193">
-        </div>
-      </div>
-    </div>
+    function createBlankTemplate() {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = 673;
+      tempCanvas.height = 1063;
+      const tCtx = tempCanvas.getContext('2d');
+      tCtx.fillStyle = "#ffffff";
+      tCtx.fillRect(0, 0, 673, 1063);
+      templateImage.src = tempCanvas.toDataURL();
+      templateImage.onload = function() { renderCard(); };
+    }
 
-    <!-- SECTION PREVIEW ID CARD -->
-    <div class="panel">
-      <div class="preview-header">
-        <div class="panel-header" style="margin-bottom: 0;">
-          PREVIEW ID CARD
-        </div>
-        <div class="target-badge">
-          👤 Target: ARTATI PUSPITA HURA ('00506.0726)
-        </div>
-      </div>
+    function handleExcelUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
 
-      <div class="preview-body">
-        <!-- ID CARD DOM -->
-        <div class="id-card" id="id-card-render">
-          <div class="card-bg-header"></div>
-          <div class="card-wave-white"></div>
-          <div class="card-wave"></div>
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
 
-          <div class="card-logo">
-            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            <div>Athalia</div>
-          </div>
-
-          <!-- MASK CONTAINER (FIXED) -->
-          <div class="circle-avatar-wrapper" id="circle-wrapper">
-            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80" id="avatar-img" alt="Foto Karyawan">
-          </div>
-
-          <div class="card-info" id="card-text-container">
-            <div class="card-name" id="disp-name">ARTATI PUSPITA HURA</div>
-            <div class="card-sub" id="disp-nik">NPP / NIK : 10506.0726</div>
-            <div class="card-sub" id="disp-unit">UNIT : PT - TK</div>
-            <div class="barcode-img"></div>
-            <div class="barcode-text">www.athalia.sch.id</div>
-          </div>
-        </div>
-
-        <!-- ACTION BUTTONS -->
-        <div class="action-buttons">
-          <button class="btn btn-blue" id="btn-download">
-            📥 Unduh PNG
-          </button>
+          const sheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[sheetName];
+          const rawData = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
           
-          <button class="btn btn-dark" id="btn-zip">
-            📄 Unduh ZIP Batch
-          </button>
-          
-          <button class="btn btn-red" id="btn-delete">
-            🗑 Hapus Foto
-          </button>
+          databaseData = rawData.map(item => {
+            const norm = {};
+            Object.keys(item).forEach(k => {
+              const cleanK = k.toString().toLowerCase().replace(/[^a-z0-9]/g, '');
+              norm[cleanK] = String(item[k]).trim();
+            });
 
-          <input type="file" id="upload-input" class="hidden-file-input" accept="image/*">
-        </div>
-      </div>
-    </div>
+            const nisnVal = norm['npp'] || norm['nppnik'] || norm['nik'] || norm['nisn'] || norm['nis'] || norm['id'] || '';
+            const namaVal = norm['namalengkap'] || norm['nama'] || norm['namakaryawan'] || norm['namapegawai'] || '';
+            
+            let unitVal = norm['unit'] || norm['unitkerja'] || norm['jabatan'] || norm['divisi'] || norm['departemen'] || norm['dept'] || norm['bagian'] || norm['subbagian'] || norm['penempatan'] || norm['posisi'] || '';
 
-  </div>
+            if (!unitVal) {
+              const matchingKey = Object.keys(norm).find(k => 
+                k.includes('unit') || k.includes('dept') || k.includes('divisi') || k.includes('jabatan') || k.includes('bagian')
+              );
+              if (matchingKey) {
+                unitVal = norm[matchingKey];
+              }
+            }
 
-</div>
+            const tempatLahirVal = norm['tempatlahir'] || norm['tmplahir'] || norm['tempat'] || '';
+            const tglVal = norm['tanggallahir'] || norm['tgllahir'] || norm['tgl'] || '';
+            
+            let vaRaw = norm['nova'] || norm['va'] || norm['virtualaccount'] || norm['virtual'] || '';
+            const vaVal = String(vaRaw).trim().replace(/,/g, '.');
 
-<script>
-  // Elements
-  const zoomInput = document.getElementById('zoom');
-  const photoYInput = document.getElementById('photo-y');
-  const photoXInput = document.getElementById('photo-x');
-  const circleSizeInput = document.getElementById('circle-size');
-  const circleYInput = document.getElementById('circle-y');
-  const textYInput = document.getElementById('text-y');
+            return {
+              nisn: nisnVal,
+              nama: namaVal,
+              unit: unitVal,
+              tempatLahir: tempatLahirVal,
+              tglLahir: tglVal,
+              noVa: vaVal,
+              photo: null
+            };
+          });
 
-  const circleWrapper = document.getElementById('circle-wrapper');
-  const avatarImg = document.getElementById('avatar-img');
-  const cardTextContainer = document.getElementById('card-text-container');
+          renderDataList(databaseData);
+          if (databaseData.length > 0) selectDataItem(0);
+        } catch (err) {
+          alert("Gagal membaca file database: " + err.message);
+        }
+      };
 
-  // Value Badges
-  const valZoom = document.getElementById('val-zoom');
-  const valPhotoY = document.getElementById('val-photo-y');
-  const valPhotoX = document.getElementById('val-photo-x');
-  const valCircleSize = document.getElementById('val-circle-size');
-  const valCircleY = document.getElementById('val-circle-y');
-  const valTextY = document.getElementById('val-text-y');
+      reader.readAsArrayBuffer(file);
+    }
 
-  // Interactive Layout Processor
-  function updateLayout() {
-    const zoom = zoomInput.value;
-    const py = photoYInput.value;
-    const px = photoXInput.value;
-    const size = circleSizeInput.value;
-    const cy = circleYInput.value;
-    const ty = textYInput.value;
+    function renderDataList(list) {
+      const container = document.getElementById('dataListContainer');
+      container.innerHTML = '';
 
-    // 1. Transform Image inside Container
-    avatarImg.style.transform = `scale(${zoom / 100}) translate(${px}px, ${py}px)`;
+      if (list.length === 0) {
+        container.innerHTML = '<div class="list-group-item data-item text-muted text-center py-4">Tidak ada data ditemukan.</div>';
+        return;
+      }
 
-    // 2. Transform Outer Circle Mask Box
-    circleWrapper.style.width = `${size}px`;
-    circleWrapper.style.height = `${size}px`;
-    circleWrapper.style.top = `${cy}px`;
-    circleWrapper.style.transform = `translateX(-50%)`;
+      list.forEach((item) => {
+        const realIndex = databaseData.indexOf(item);
 
-    // 3. Transform Text Section Position
-    cardTextContainer.style.top = `${ty}px`;
+        const el = document.createElement('div');
+        el.className = `list-group-item data-item d-flex justify-content-between align-items-center py-2 px-3 ${realIndex === selectedIndex ? 'active' : ''}`;
+        el.onclick = () => selectDataItem(realIndex);
+        
+        const badgeStatus = item.photo 
+          ? '<span class="badge bg-success-subtle text-success border border-success"><i class="fa-solid fa-check"></i> Foto</span>' 
+          : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Kosong</span>';
+        
+        el.innerHTML = `<div><strong class="text-info">${item.nisn || '-'}</strong> — ${item.nama || 'Tanpa Nama'} ${item.unit ? `<small class="text-muted">(${item.unit})</small>` : ''}</div> ${badgeStatus}`;
+        container.appendChild(el);
+      });
+    }
 
-    // 4. Label Updates
-    valZoom.textContent = `${zoom} %`;
-    valPhotoY.textContent = `${py} px`;
-    valPhotoX.textContent = `${px} px`;
-    valCircleSize.textContent = `${size} %`;
-    valCircleY.textContent = `${cy} px`;
-    valTextY.textContent = `${ty} px`;
-  }
+    function filterDataList() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = databaseData.filter(d => 
+        d.nama.toLowerCase().includes(query) || d.nisn.toString().toLowerCase().includes(query) || d.unit.toLowerCase().includes(query)
+      );
+      renderDataList(filtered);
+    }
 
-  // Attach Event Listeners
-  [zoomInput, photoYInput, photoXInput, circleSizeInput, circleYInput, textYInput].forEach(slider => {
-    slider.addEventListener('input', updateLayout);
-  });
+    function selectDataItem(idx) {
+      selectedIndex = idx;
+      filterDataList();
+      
+      const current = databaseData[selectedIndex];
+      if (current) {
+        document.getElementById('targetInfo').innerHTML = `<i class="fa-solid fa-user-check me-1 text-success"></i> ${current.nama} (${current.nisn})`;
+      }
+      renderCard();
+    }
 
-  // Action Buttons
-  document.getElementById('btn-download').addEventListener('click', () => {
-    const card = document.getElementById('id-card-render');
-    html2canvas(card, { scale: 3, useCORS: true }).then(canvas => {
-      const a = document.createElement('a');
-      a.download = 'ID_Card_ARTATI_PUSPITA_HURA.png';
-      a.href = canvas.toDataURL();
-      a.click();
-    });
-  });
+    function handleTemplateUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
 
-  document.getElementById('btn-delete').addEventListener('click', () => {
-    avatarImg.src = '';
-  });
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        templateImage = new Image();
+        templateImage.onload = () => renderCard();
+        templateImage.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
 
-  // Initial Execution
-  updateLayout();
-</script>
+    async function startCamera() {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        
+        const select = document.getElementById('cameraSelect');
+        select.innerHTML = '';
+        videoDevices.forEach((device, index) => {
+          const option = document.createElement('option');
+          option.value = device.deviceId;
+          option.text = device.label || `Kamera ${index + 1}`;
+          select.appendChild(option);
+        });
 
+        const constraints = {
+          video: { 
+            deviceId: select.value ? { exact: select.value } : undefined,
+            width: { ideal: 720 },
+            height: { ideal: 1280 }
+          }
+        };
+
+        if (currentStream) {
+          currentStream.getTracks().forEach(track => track.stop());
+        }
+
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        document.getElementById('videoElement').srcObject = currentStream;
+      } catch (err) {
+        alert("Gagal mengakses kamera: " + err.message);
+      }
+    }
+
+    function capturePhoto() {
+      if (selectedIndex < 0) {
+        alert("Pilih data anggota terlebih dahulu!");
+        return;
+      }
+      const video = document.getElementById('videoElement');
+      const canvas = document.createElement('canvas');
+      canvas.width = 400;
+      canvas.height = 400;
+      const ctx = canvas.getContext('2d');
+      
+      const minDim = Math.min(video.videoWidth, video.videoHeight);
+      const sx = (video.videoWidth - minDim) / 2;
+      const sy = (video.videoHeight - minDim) / 2;
+      ctx.drawImage(video, sx, sy, minDim, minDim, 0, 0, 400, 400);
+
+      databaseData[selectedIndex].photo = canvas.toDataURL('image/png');
+      filterDataList();
+      renderCard();
+    }
+
+    function handleSinglePhotoUpload(e) {
+      if (selectedIndex < 0) {
+        alert("Pilih data terlebih dahulu!");
+        return;
+      }
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        databaseData[selectedIndex].photo = evt.target.result;
+        filterDataList();
+        renderCard();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleFolderUpload(e) {
+      const files = Array.from(e.target.files);
+      if (files.length === 0 || databaseData.length === 0) {
+        alert("Pastikan database Excel/CSV sudah diunggah terlebih dahulu!");
+        return;
+      }
+
+      files.forEach(file => {
+        const fileNameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')).toLowerCase();
+        
+        const matchedItem = databaseData.find(d => 
+          d.nisn.toString().toLowerCase() === fileNameWithoutExt || 
+          d.nama.toLowerCase() === fileNameWithoutExt
+        );
+
+        if (matchedItem) {
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            matchedItem.photo = evt.target.result;
+            filterDataList();
+            if (databaseData[selectedIndex] === matchedItem) renderCard();
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    function deleteCurrentPhoto() {
+      if (selectedIndex >= 0 && databaseData[selectedIndex]) {
+        databaseData[selectedIndex].photo = null;
+        filterDataList();
+        renderCard();
+      }
+    }
+
+    // DRAW FOTO PROPORSIONAL
+    function drawImageCover(ctx, img, cx, cy, diameter, innerOffsetY = 0) {
+      const imgAspect = img.width / img.height;
+      let drawW, drawH;
+
+      if (imgAspect > 1) {
+        drawH = diameter;
+        drawW = diameter * imgAspect;
+      } else {
+        drawW = diameter;
+        drawH = diameter / imgAspect;
+      }
+
+      const drawX = cx - drawW / 2;
+      let baseOffsetY = 0;
+      if (imgAspect < 1) {
+        const extraHeight = drawH - diameter;
+        baseOffsetY = extraHeight * 0.15;
+      }
+
+      const drawY = (cy - drawH / 2) + baseOffsetY + innerOffsetY;
+      ctx.drawImage(img, drawX, drawY, drawW, drawH);
+    }
+
+    // FUNGSI UTAMA DRAW MASKING & CANVAS
+    function renderCard() {
+      const canvas = document.getElementById('previewCanvas');
+      const ctx = canvas.getContext('2d');
+      const preset = document.getElementById('presetSelect').value;
+      const maskShape = document.getElementById('maskShapeSelect').value;
+
+      ctx.clearRect(0, 0, 673, 1063);
+      if (templateImage.complete && templateImage.naturalWidth > 0) {
+        ctx.drawImage(templateImage, 0, 0, 673, 1063);
+      } else {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, 673, 1063);
+      }
+
+      const activeData = databaseData[selectedIndex] || {
+        nama: 'ARTATI PUSPITA HURA',
+        nisn: '00506.0726',
+        unit: 'PT - TK',
+        tempatLahir: 'Jakarta',
+        tglLahir: '15 Maret 1995',
+        noVa: '880.120.241.001',
+        photo: null
+      };
+
+      const scale = parseFloat(document.getElementById('photoScale').value) / 100;
+      const photoY = parseFloat(document.getElementById('photoY').value);
+      const innerPhotoY = parseFloat(document.getElementById('innerPhotoY').value);
+      const textY = parseFloat(document.getElementById('textY').value);
+
+      const centerX = 336.5;
+      const centerY = 425 + photoY;
+      const radius = (250 * scale) / 2;
+      const diameter = radius * 2;
+
+      ctx.save();
+      ctx.beginPath();
+
+      // LOGIKA MASKING
+      if (maskShape === 'circle') {
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      } else if (maskShape === 'rounded') {
+        const r = 24;
+        const x = centerX - radius;
+        const y = centerY - radius;
+        const w = diameter;
+        const h = diameter;
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+      } else { // Square
+        ctx.rect(centerX - radius, centerY - radius, diameter, diameter);
+      }
+      ctx.closePath();
+
+      if (activeData.photo) {
+        const img = new Image();
+        img.onload = function() {
+          ctx.save();
+          ctx.clip();
+          drawImageCover(ctx, img, centerX, centerY, diameter, innerPhotoY);
+          ctx.restore();
+
+          drawCardTextAndBarcode(ctx, activeData, preset, textY);
+        };
+        img.src = activeData.photo;
+      } else {
+        ctx.fillStyle = "#cbd5e1";
+        ctx.fill();
+        ctx.restore();
+        
+        drawCardTextAndBarcode(ctx, activeData, preset, textY);
+      }
+    }
+
+    function drawCardTextAndBarcode(ctx, data, preset, textYOffset) {
+      ctx.textAlign = "center";
+      const fontDinBold = "'DIN Bold', 'DIN-Bold', 'DINCondensed-Bold', 'DIN Condensed', 'Arial Narrow', sans-serif";
+
+      // 1. Nama Lengkap
+      const namaText = (data.nama || 'NAMA PESERTA').toUpperCase();
+      ctx.save();
+      ctx.fillStyle = "#000000";
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 1.6;
+      ctx.font = `900 38px ${fontDinBold}`;
+      ctx.strokeText(namaText, 336.5, 595 + textYOffset);
+      ctx.fillText(namaText, 336.5, 595 + textYOffset);
+      ctx.restore();
+
+      // 2. Detail Teks
+      ctx.font = `bold 24px ${fontDinBold}`;
+      ctx.fillStyle = "#333333";
+
+      if (preset === 'karyawan') {
+        ctx.fillText(`NPP / NIK : ${data.nisn || '-'}`, 336.5, 635 + textYOffset);
+        ctx.fillText(`UNIT : ${data.unit ? data.unit.toUpperCase() : '-'}`, 336.5, 670 + textYOffset);
+      } else {
+        ctx.fillText(`NIS / NISN : ${data.nisn || '-'}`, 336.5, 635 + textYOffset);
+        
+        let ttlStr = 'TTL : -';
+        if (data.tempatLahir && data.tglLahir) {
+          ttlStr = `TTL : ${data.tempatLahir}, ${data.tglLahir}`;
+        } else if (data.tempatLahir) {
+          ttlStr = `TTL : ${data.tempatLahir}`;
+        } else if (data.tglLahir) {
+          ttlStr = `TTL : ${data.tglLahir}`;
+        }
+        ctx.fillText(ttlStr, 336.5, 670 + textYOffset);
+
+        const cleanVa = data.noVa ? data.noVa.replace(/,/g, '.') : '-';
+        ctx.fillText(`NO. V.A. : ${cleanVa}`, 336.5, 705 + textYOffset);
+      }
+
+      // 3. Barcode
+      const barcodeCanvas = document.getElementById('hiddenBarcodeCanvas');
+      try {
+        const barcodeVal = data.nisn || '000000';
+        JsBarcode(barcodeCanvas, barcodeVal.toString(), {
+          format: "CODE128",
+          width: 3,
+          height: 90,
+          displayValue: false
+        });
+
+        const bWidth = 460;
+        const bHeight = 100;
+        const bX = (673 - bWidth) / 2;
+        const bY = 885;
+        ctx.drawImage(barcodeCanvas, bX, bY, bWidth, bHeight);
+      } catch (err) {
+        console.warn("Error rendering barcode:", err);
+      }
+
+      // 4. Footer Website
+      const footerVal = document.getElementById('footerInput') ? document.getElementById('footerInput').value : '';
+      if (footerVal) {
+        ctx.save();
+        if ('letterSpacing' in ctx) {
+          ctx.letterSpacing = "3px";
+        }
+        ctx.font = `bold 16px ${fontDinBold}`;
+        ctx.fillStyle = "#333333";
+        ctx.fillText(footerVal, 336.5, 1025);
+        ctx.restore();
+      }
+    }
+
+    function downloadSingleCard() {
+      const canvas = document.getElementById('previewCanvas');
+      const activeData = databaseData[selectedIndex];
+      const filename = activeData ? `ID_CARD_${activeData.nisn}_${activeData.nama}.png` : 'ID_CARD.png';
+      
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    async function downloadZipBatch() {
+      const completedItems = databaseData.filter(d => d.photo !== null);
+      if (completedItems.length === 0) {
+        alert("Belum ada foto yang dijepret/diunggah!");
+        return;
+      }
+
+      const zip = new JSZip();
+      const folder = zip.folder("ID_Cards_Hasil");
+
+      const offscreenCanvas = document.createElement('canvas');
+      offscreenCanvas.width = 673;
+      offscreenCanvas.height = 1063;
+      const offCtx = offscreenCanvas.getContext('2d');
+
+      const preset = document.getElementById('presetSelect').value;
+      const maskShape = document.getElementById('maskShapeSelect').value;
+      const scale = parseFloat(document.getElementById('photoScale').value) / 100;
+      const photoY = parseFloat(document.getElementById('photoY').value);
+      const innerPhotoY = parseFloat(document.getElementById('innerPhotoY').value);
+      const textY = parseFloat(document.getElementById('textY').value);
+
+      for (let item of completedItems) {
+        offCtx.clearRect(0, 0, 673, 1063);
+        if (templateImage.complete && templateImage.naturalWidth > 0) {
+          offCtx.drawImage(templateImage, 0, 0, 673, 1063);
+        } else {
+          offCtx.fillStyle = "#ffffff";
+          offCtx.fillRect(0, 0, 673, 1063);
+        }
+
+        await new Promise((resolve) => {
+          const img = new Image();
+          img.onload = function() {
+            offCtx.save();
+            const centerX = 336.5;
+            const centerY = 425 + photoY;
+            const radius = (250 * scale) / 2;
+            const diameter = radius * 2;
+
+            offCtx.beginPath();
+            if (maskShape === 'circle') {
+              offCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            } else if (maskShape === 'rounded') {
+              const r = 24;
+              const x = centerX - radius;
+              const y = centerY - radius;
+              offCtx.moveTo(x + r, y);
+              offCtx.arcTo(x + diameter, y, x + diameter, y + diameter, r);
+              offCtx.arcTo(x + diameter, y + diameter, x, y + diameter, r);
+              offCtx.arcTo(x, y + diameter, x, y, r);
+              offCtx.arcTo(x, y, x + diameter, y, r);
+            } else {
+              offCtx.rect(centerX - radius, centerY - radius, diameter, diameter);
+            }
+            offCtx.closePath();
+            offCtx.clip();
+
+            drawImageCover(offCtx, img, centerX, centerY, diameter, innerPhotoY);
+            offCtx.restore();
+
+            drawCardTextAndBarcode(offCtx, item, preset, textY);
+
+            const dataUrl = offscreenCanvas.toDataURL('image/png');
+            const base64Data = dataUrl.replace(/^data:image\/png;base64,/, "");
+            folder.file(`ID_CARD_${item.nisn}_${item.nama}.png`, base64Data, { base64: true });
+            resolve();
+          };
+          img.src = item.photo;
+        });
+      }
+
+      zip.generateAsync({ type: "blob" }).then(function(content) {
+        saveAs(content, "ID_Cards_Hasil_Selesai.zip");
+      });
+    }
+  </script>
 </body>
 </html>
