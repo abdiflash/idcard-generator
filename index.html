@@ -196,7 +196,7 @@
     .crop-overlay.circle { width: 110px; height: 110px; border-radius: 50%; }
 
     .data-list {
-      max-height: 220px;
+      max-height: 280px;
       overflow-y: auto;
     }
 
@@ -220,7 +220,7 @@
 
     #previewCanvas {
       width: 100%;
-      max-width: 200px;
+      max-width: 220px;
       height: auto;
       border-radius: 10px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.6);
@@ -301,69 +301,101 @@
   <div class="container-fluid px-4" style="max-width: 1400px;">
     <div class="row g-4">
       
-      <!-- KOLOM 1: PRESET & INPUT DATA (KIRI) -->
-      <div class="col-lg-6">
+      <!-- KOLOM KIRI: DATABASE, TEMPLATE, PRESET & LIST DATA -->
+      <div class="col-lg-5">
         
+        <!-- STEP 1 & 2: UNGGAH DATABASE & TEMPLATE -->
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <div class="card p-3 h-100">
+              <div class="step-header"><span class="badge-step">1</span> DATABASE (EXCEL/CSV)</div>
+              <input type="file" id="excelInput" class="form-control" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card p-3 h-100">
+              <div class="step-header"><span class="badge-step">2</span> TEMPLATE BG ID CARD</div>
+              <input type="file" id="templateInput" class="form-control" accept="image/*" onchange="handleTemplateUpload(event)">
+            </div>
+          </div>
+        </div>
+
+        <!-- PRESET LAYOUT & TEKS FOOTER -->
         <div class="card p-3 mb-3">
-          <div class="step-header"><span class="badge-step"><i class="fa-solid fa-sliders"></i></span> PRESET LAYOUT & PENYESUAIAN VISUAL</div>
-          
-          <!-- KONFIGURASI UTAMA -->
-          <div class="row g-2 mb-3">
+          <div class="step-header"><span class="badge-step"><i class="fa-solid fa-sliders"></i></span> PRESET LAYOUT & WEBSITE</div>
+          <div class="row g-2">
             <div class="col-md-5">
-              <label class="form-label small fw-semibold text-light mb-1">
-                <i class="fa-solid fa-layer-group text-primary me-1"></i> Jenis Preset Layout:
-              </label>
+              <label class="form-label small fw-semibold text-light mb-1">Jenis Preset Layout:</label>
               <select id="presetSelect" class="form-select" onchange="renderCard()">
-                <option value="karyawan" selected>ID Card Karyawan (circle)</option>
-                <option value="pelajar">ID Card Pelajar (circle)</option>
+                <option value="karyawan" selected>ID Card Karyawan</option>
+                <option value="pelajar">ID Card Pelajar</option>
               </select>
             </div>
             <div class="col-md-7">
-              <label class="form-label small fw-semibold text-light mb-1">
-                <i class="fa-solid fa-globe text-primary me-1"></i> Teks Footer Website:
-              </label>
-              <input type="text" id="footerInput" class="form-control" value="www.edueasy.id" placeholder="Contoh: www.edueasy.id" oninput="renderCard()">
+              <label class="form-label small fw-semibold text-light mb-1">Teks Footer Website:</label>
+              <input type="text" id="footerInput" class="form-control" value="www.edueasy.id" placeholder="www.edueasy.id" oninput="renderCard()">
             </div>
           </div>
+        </div>
 
-          <!-- PENGATURAN KONTROL -->
+        <!-- STEP 3: PILIH DATA KARYAWAN / PELAJAR -->
+        <div class="card p-3">
+          <div class="step-header"><span class="badge-step">3</span> PILIH DATA KARYAWAN / PELAJAR</div>
+          <input type="text" id="searchInput" class="form-control mb-2" placeholder="Cari Nama / NIK / NPP / NISN..." oninput="filterDataList()">
+          <div class="list-group data-list" id="dataListContainer">
+            <div class="list-group-item data-item text-muted text-center py-3">Unggah file database Excel/CSV untuk menampilkan daftar data...</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- KOLOM KANAN: KAMERA, PENGATURAN BINGKAI/TEKS/FOTO, & PREVIEW ID CARD -->
+      <div class="col-lg-7">
+        
+        <!-- STEP 4: AMBIL / UNGGAH FOTO & INPUT KAMERA (DILENGKAPI SELECT KAMERA) -->
+        <div class="card p-3 mb-3">
+          <div class="step-header justify-content-between flex-wrap">
+            <div><span class="badge-step">4</span> AMBIL / UNGGAH FOTO</div>
+            <!-- INPUT KAMERA DIPINDAHKAN KE SINI -->
+            <div class="d-flex align-items-center gap-2 mt-1 mt-sm-0" style="max-width: 320px;">
+              <select id="cameraSelect" class="form-select form-select-sm py-1"></select>
+              <button class="btn-modern btn-modern-primary py-1 px-3 text-nowrap" style="width: auto;" onclick="startCamera()">
+                <i class="fa-solid fa-video"></i> Start
+              </button>
+            </div>
+          </div>
+          
+          <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-sm-start gap-4 py-1">
+            <div class="camera-wrapper">
+              <video id="videoElement" autoplay playsinline></video>
+              <div id="cropOverlay" class="crop-overlay circle"></div>
+            </div>
+
+            <div class="btn-action-group">
+              <button class="btn-modern btn-modern-primary" onclick="capturePhoto()">
+                <i class="fa-solid fa-camera"></i> Jepret Kamera
+              </button>
+              
+              <label class="btn-modern m-0">
+                <i class="fa-solid fa-file-image text-info"></i> Unggah Single Foto
+                <input type="file" hidden accept="image/*" onchange="handleSinglePhotoUpload(event)">
+              </label>
+
+              <label class="btn-modern m-0">
+                <i class="fa-solid fa-folder-open text-warning"></i> Unggah Bulk Foto
+                <input type="file" hidden webkitdirectory directory multiple onchange="handleFolderUpload(event)">
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- PENGATURAN TEMPLATE, BINGKAI LINGKARAN & TEKS Y (GABUNG JADI SATU BAGIAN DI DEKAT PREVIEW) -->
+        <div class="card p-3 mb-3">
+          <div class="step-header mb-2"><span class="badge-step"><i class="fa-solid fa-sliders"></i></span> PENGATURAN BINGKAI, TEKS & FOTO</div>
+          
           <div class="row g-2">
-            
-            <!-- KELOMPOK 1: UKURAN & POSISI Y BINGKAI LINGKARAN -->
+            <!-- GROUP A: ISI FOTO DI DALAM LINGKARAN (LOCKED CIRCLE) -->
             <div class="col-12">
-              <div class="text-uppercase fw-bold text-info mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
-                <i class="fa-solid fa-vector-square me-1"></i> Posisi & Ukuran Bingkai Lingkaran ID Card
-              </div>
-            </div>
-
-            <div class="col-md-6">
-              <div class="control-card">
-                <div class="control-header">
-                  <span class="control-title"><i class="fa-regular fa-circle text-info me-1"></i> Ukuran Lingkaran</span>
-                  <div class="unit-input-group">
-                    <input type="number" id="frameScaleNum" class="form-control num-input" min="50" max="200" value="100" oninput="syncNumToSlider('frameScale', 'frameScaleNum')">
-                    <span class="unit-label">%</span>
-                  </div>
-                </div>
-                <input type="range" class="form-range custom-range" id="frameScale" min="50" max="200" value="100" oninput="syncSliderToNum('frameScale', 'frameScaleNum')">
-              </div>
-            </div>
-
-            <div class="col-md-6">
-              <div class="control-card">
-                <div class="control-header">
-                  <span class="control-title"><i class="fa-solid fa-arrows-up-down text-info me-1"></i> Posisi Lingkaran Y</span>
-                  <div class="unit-input-group">
-                    <input type="number" id="frameYNum" class="form-control num-input" min="-150" max="150" value="0" oninput="syncNumToSlider('frameY', 'frameYNum')">
-                    <span class="unit-label">px</span>
-                  </div>
-                </div>
-                <input type="range" class="form-range custom-range" id="frameY" min="-150" max="150" value="0" oninput="syncSliderToNum('frameY', 'frameYNum')">
-              </div>
-            </div>
-
-            <!-- KELOMPOK 2: ZOOM & GESER FOTO DI DALAM LINGKARAN -->
-            <div class="col-12 mt-2">
               <div class="text-uppercase fw-bold text-warning mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
                 <i class="fa-solid fa-image me-1"></i> Isi Foto Di Dalam Lingkaran (Locked Circle)
               </div>
@@ -374,11 +406,12 @@
                 <div class="control-header">
                   <span class="control-title text-warning"><i class="fa-solid fa-magnifying-glass-plus me-1"></i> Zoom / Skala Foto</span>
                   <div class="unit-input-group">
-                    <input type="number" id="innerScaleNum" class="form-control num-input text-warning" min="100" max="300" value="100" oninput="syncNumToSlider('innerScale', 'innerScaleNum')">
+                    <!-- Zoom bisa mengecil mulai dari 10% -->
+                    <input type="number" id="innerScaleNum" class="form-control num-input text-warning" min="10" max="300" value="100" oninput="syncNumToSlider('innerScale', 'innerScaleNum')">
                     <span class="unit-label text-warning">%</span>
                   </div>
                 </div>
-                <input type="range" class="form-range custom-range accent-warning" id="innerScale" min="100" max="300" value="100" oninput="syncSliderToNum('innerScale', 'innerScaleNum')">
+                <input type="range" class="form-range custom-range accent-warning" id="innerScale" min="10" max="300" value="100" oninput="syncSliderToNum('innerScale', 'innerScaleNum')">
               </div>
             </div>
 
@@ -408,11 +441,43 @@
               </div>
             </div>
 
-            <!-- KELOMPOK 3: ATUR POSISI TEKS ID CARD -->
+            <!-- GROUP B: POSISI BINGKAI LINGKARAN & POSISI TEKS ID CARD Y -->
             <div class="col-12 mt-2">
+              <div class="text-uppercase fw-bold text-info mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                <i class="fa-solid fa-vector-square me-1"></i> Posisi & Ukuran Bingkai Lingkaran & Teks ID Card Y
+              </div>
+            </div>
+
+            <div class="col-md-4 col-sm-6">
               <div class="control-card">
                 <div class="control-header">
-                  <span class="control-title"><i class="fa-solid fa-font text-info me-1"></i> Posisi Teks ID Card Y (Nama, NIK, Unit)</span>
+                  <span class="control-title"><i class="fa-regular fa-circle text-info me-1"></i> Ukuran Lingkaran</span>
+                  <div class="unit-input-group">
+                    <input type="number" id="frameScaleNum" class="form-control num-input" min="50" max="200" value="100" oninput="syncNumToSlider('frameScale', 'frameScaleNum')">
+                    <span class="unit-label">%</span>
+                  </div>
+                </div>
+                <input type="range" class="form-range custom-range" id="frameScale" min="50" max="200" value="100" oninput="syncSliderToNum('frameScale', 'frameScaleNum')">
+              </div>
+            </div>
+
+            <div class="col-md-4 col-sm-6">
+              <div class="control-card">
+                <div class="control-header">
+                  <span class="control-title"><i class="fa-solid fa-arrows-up-down text-info me-1"></i> Posisi Lingkaran Y</span>
+                  <div class="unit-input-group">
+                    <input type="number" id="frameYNum" class="form-control num-input" min="-150" max="150" value="0" oninput="syncNumToSlider('frameY', 'frameYNum')">
+                    <span class="unit-label">px</span>
+                  </div>
+                </div>
+                <input type="range" class="form-range custom-range" id="frameY" min="-150" max="150" value="0" oninput="syncSliderToNum('frameY', 'frameYNum')">
+              </div>
+            </div>
+
+            <div class="col-md-4 col-sm-12">
+              <div class="control-card">
+                <div class="control-header">
+                  <span class="control-title"><i class="fa-solid fa-font text-info me-1"></i> Posisi Teks Y (Nama, NIK, Unit)</span>
                   <div class="unit-input-group">
                     <input type="number" id="textYNum" class="form-control num-input" min="-100" max="300" value="0" oninput="syncNumToSlider('textY', 'textYNum')">
                     <span class="unit-label">px</span>
@@ -422,72 +487,6 @@
               </div>
             </div>
 
-          </div>
-        </div>
-
-        <div class="row g-3">
-          <div class="col-md-6">
-            <div class="card p-3 h-100">
-              <div class="step-header"><span class="badge-step">1</span> DATABASE (EXCEL/CSV)</div>
-              <input type="file" id="excelInput" class="form-control" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)">
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="card p-3 h-100">
-              <div class="step-header"><span class="badge-step">2</span> TEMPLATE BACKGROUND ID CARD</div>
-              <input type="file" id="templateInput" class="form-control" accept="image/*" onchange="handleTemplateUpload(event)">
-            </div>
-          </div>
-        </div>
-
-        <div class="card p-3 mt-3">
-          <div class="step-header"><span class="badge-step">3</span> INPUT KAMERA (HP / USB)</div>
-          <div class="d-flex gap-2 align-items-center">
-            <select id="cameraSelect" class="form-select"></select>
-            <button class="btn-modern btn-modern-primary" style="width: auto;" onclick="startCamera()">
-              <i class="fa-solid fa-video"></i> Start
-            </button>
-          </div>
-        </div>
-
-        <div class="card p-3 mt-3">
-          <div class="step-header"><span class="badge-step">4</span> PILIH DATA KARYAWAN / PELAJAR</div>
-          <input type="text" id="searchInput" class="form-control mb-2" placeholder="Cari Nama / NIK / NPP / NISN..." oninput="filterDataList()">
-          <div class="list-group data-list" id="dataListContainer">
-            <div class="list-group-item data-item text-muted text-center py-3">Unggah file database Excel/CSV untuk menampilkan daftar data...</div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- KOLOM 2: AMBIL FOTO & PREVIEW HASIL (KANAN) -->
-      <div class="col-lg-6">
-        
-        <!-- STEP 5: AMBIL / UNGGAH FOTO -->
-        <div class="card p-3 mb-3">
-          <div class="step-header"><span class="badge-step">5</span> AMBIL / UNGGAH FOTO</div>
-          
-          <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-sm-start gap-4 py-1">
-            <div class="camera-wrapper">
-              <video id="videoElement" autoplay playsinline></video>
-              <div id="cropOverlay" class="crop-overlay circle"></div>
-            </div>
-
-            <div class="btn-action-group">
-              <button class="btn-modern btn-modern-primary" onclick="capturePhoto()">
-                <i class="fa-solid fa-camera"></i> Jepret Kamera
-              </button>
-              
-              <label class="btn-modern m-0">
-                <i class="fa-solid fa-file-image text-info"></i> Unggah Single Foto
-                <input type="file" hidden accept="image/*" onchange="handleSinglePhotoUpload(event)">
-              </label>
-
-              <label class="btn-modern m-0">
-                <i class="fa-solid fa-folder-open text-warning"></i> Unggah Bulk Foto
-                <input type="file" hidden webkitdirectory directory multiple onchange="handleFolderUpload(event)">
-              </label>
-            </div>
           </div>
         </div>
 
@@ -788,19 +787,19 @@
       }
     }
 
-    // FUNGSI ZOOM & GESER TERISI SEMPURNA TANPA SPACER KOSONG (COVER MODE)
+    // FUNGSI DRAIMAGE COVER / SKALA DENGAN DUKUNGAN ZOOM MENGENAL KECIL (< 100%)
     function drawImageCover(ctx, img, cx, cy, diameter, innerOffsetX = 0, innerOffsetY = 0, innerScale = 1.0) {
-      // Menghitung skala dasar agar foto selalu menutup seluruh area lingkaran (cover)
+      // Skala penutup dasar (Cover)
       const scaleToCover = Math.max(diameter / img.width, diameter / img.height);
       
       const baseW = img.width * scaleToCover;
       const baseH = img.height * scaleToCover;
 
-      // Hasil akhir ukuran foto berdasarkan zoom slider
+      // Hasil ukuran foto yang dikalikan dengan innerScale (bisa < 1.0 atau > 1.0)
       const drawW = baseW * innerScale;
       const drawH = baseH * innerScale;
 
-      // Titik tengah murni terisolasi + offset manual
+      // Titik tengah murni terisolasi + offset manual X & Y
       const drawX = (cx - drawW / 2) + innerOffsetX;
       const drawY = (cy - drawH / 2) + innerOffsetY;
 
