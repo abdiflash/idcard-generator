@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ID Card Generator & Masking Control</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- Google Fonts Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CDN Third-Party Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+  <style>
+    @font-face {
+      font-family: 'DIN Bold';
+      src: local('DIN Bold'), local('DIN-Bold'), local('DINCondensed-Bold'), local('DIN Condensed'), local('Arial Narrow');
+    }
+
+    :root {
+      --bg-main: #070d1e;
+      --card-bg: #0f172a;
+      --card-border: #1e293b;
+      --accent-blue: #2563eb;
+      --accent-cyan: #06b6d4;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --input-bg: #020617;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-main); }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+
+    .app-header {
+      background: #0b1329;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .card-custom {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    .step-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-step {
+      background: linear-gradient(135deg, var(--accent-blue), #1d4ed8);
+      color: #fff;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .form-control, .form-select {
+      background-color: var(--input-bg);
+      border: 1px solid #1e293b;
+      color: var(--text-main);
+      font-size: 0.8rem;
+      border-radius: 8px;
+      padding: 7px 10px;
+    }
+
+    .form-control:focus, .form-select:focus {
+      background-color: var(--input-bg);
+      border-color: var(--accent-blue);
+      color: var(--text-main);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+    }
+
+    .form-range { height: 4px; }
+    .form-range::-webkit-slider-thumb {
+      background: var(--accent-blue);
+      box-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
+    }
+
+    .input-preset-num {
+      background-color: var(--input-bg) !important;
+      color: #38bdf8 !important;
+      border: 1px solid #1e293b !important;
+      font-weight: 700;
+      font-size: 0.73rem;
+      border-radius: 4px;
+    }
+
+    /* Camera Element */
+    .camera-wrapper {
+      position: relative;
+      width: 180px;
+      height: 220px;
+      background-color: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+      flex-shrink: 0;
+    }
+
+    #videoElement {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .crop-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 2px dashed var(--accent-cyan);
+      pointer-events: none;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+      transition: all 0.2s ease;
+    }
+    .crop-overlay.circle { width: 120px; height: 120px; border-radius: 50%; }
+    .crop-overlay.rounded { width: 115px; height: 130px; border-radius: 18px; }
+
+    /* Data List Container */
+    .data-list {
+      max-height: 220px;
+      overflow-y: auto;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+
+    .data-item {
+      background-color: var(--input-bg);
+      border: none;
+      border-bottom: 1px solid var(--card-border);
+      color: var(--text-main);
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
+    .data-item:hover { background-color: #1e293b; }
+    .data-item.active {
+      background-color: #1e3a8a !important;
+      border-left: 4px solid var(--accent-cyan);
+    }
+
+    /* Canvas Preview */
+    #previewCanvas {
+      width: 100%;
+      max-width: 250px;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.8);
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+    }
+
+    .target-badge {
+      background-color: rgba(6, 182, 212, 0.1);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .btn-modern {
+      background-color: #1e293b;
+      color: var(--text-main);
+      border: 1px solid #334155;
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.2s ease;
+    }
+    .btn-modern:hover { background-color: #334155; color: #fff; }
+
+    .btn-modern-primary {
+      background: linear-gradient(135deg, var(--accent-blue), #1d4ed8);
+      color: #ffffff;
+      border: none;
+      font-weight: 600;
+    }
+    .btn-modern-primary:hover { background: linear-gradient(135deg, #1d4ed8, #1e40af); }
+
+    .btn-modern-danger {
+      background-color: transparent;
+      color: #f87171;
+      border: 1px solid rgba(248, 113, 113, 0.3);
+    }
+    .btn-modern-danger:hover { background-color: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+
+    @media (min-width: 992px) {
+      .sticky-col { position: sticky; top: 15px; }
+    }
+  </style>
+</head>
+<body class="pb-5">
+
+  <header class="app-header py-3 mb-3">
+    <div class="container-fluid px-4">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+          <div class="bg-primary text-white rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+            <i class="fa-solid fa-id-card"></i>
+          </div>
+          <div>
+            <h6 class="fw-bold mb-0 text-white">ID Card Generator & Masking Control</h6>
+            <small class="text-muted" style="font-size: 0.7rem;">Sistem Cetak ID Card Otomatis dengan Pengaturan Foto Terkunci (Locked Circle/Masking)</small>
+          </div>
+        </div>
+        <span class="badge bg-dark border border-secondary text-info px-3 py-2">
+          <i class="fa-solid fa-circle-check text-success me-1"></i> System Ready
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <div class="container-fluid px-4">
+    <div class="row g-3">
+      
+      <!-- SISI KIRI: INPUT DATABASE, TEMPLATE, DATA, DAN KAMERA -->
+      <div class="col-lg-5 col-xl-5">
+        
+        <!-- STEP 1 & 2: DATABASE & TEMPLATE BACKGROUND -->
+        <div class="row g-2 mb-2">
+          <div class="col-md-6">
+            <div class="card-custom p-3 h-100">
+              <div class="step-header"><span class="badge-step">1</span> DATABASE (.XLSX / .CSV)</div>
+              <input type="file" id="excelInput" class="form-control" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card-custom p-3 h-100">
+              <div class="step-header"><span class="badge-step">2</span> TEMPLATE BACKGROUND</div>
+              <input type="file" id="templateInput" class="form-control" accept="image/*" onchange="handleTemplateUpload(event)">
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4: PILIH DATA ANGGOTA -->
+        <div class="card-custom p-3 mb-2">
+          <div class="step-header"><span class="badge-step">4</span> PILIH DATA ANGGOTA</div>
+          <input type="text" id="searchInput" class="form-control mb-2" placeholder="Cari Nama / NIK / NPP..." oninput="filterDataList()">
+          <div class="list-group data-list" id="dataListContainer">
+            <div class="list-group-item data-item text-muted text-center py-3">Unggah file Excel/CSV untuk menampilkan daftar data...</div>
+          </div>
+        </div>
+
+        <!-- STEP 5: AMBIL / UNGGAH FOTO FOKUS -->
+        <div class="card-custom p-3">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="step-header m-0"><span class="badge-step">5</span> AMBIL / UNGGAH FOTO FOKUS</div>
+            <div class="d-flex gap-1 align-items-center">
+              <select id="cameraSelect" class="form-select form-select-sm" style="max-width: 110px;"></select>
+              <button class="btn-modern btn-modern-primary py-1 px-2" style="font-size:0.72rem;" onclick="startCamera()">
+                <i class="fa-solid fa-video me-1"></i> Aktifkan
+              </button>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-3">
+            <div class="camera-wrapper">
+              <video id="videoElement" autoplay playsinline></video>
+              <div id="cropOverlay" class="crop-overlay circle"></div>
+            </div>
+
+            <div class="d-flex flex-column gap-2 w-100">
+              <button class="btn-modern btn-modern-primary" onclick="capturePhoto()">
+                <i class="fa-solid fa-camera"></i> Tangkap Kamera
+              </button>
+              
+              <label class="btn-modern m-0">
+                <i class="fa-solid fa-camera-retro text-info"></i> Unggah Foto Baru
+                <input type="file" id="singlePhotoInput" hidden accept="image/*" onchange="handleSinglePhotoUpload(event)">
+              </label>
+
+              <label class="btn-modern m-0">
+                <i class="fa-solid fa-folder-open text-warning"></i> Bulk Folder Foto
+                <input type="file" hidden webkitdirectory directory multiple onchange="handleFolderUpload(event)">
+              </label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SISI KANAN: PREVIEW REAL-TIME & CONTROL PANEL (SIDE BY SIDE) -->
+      <div class="col-lg-7 col-xl-7">
+        <div class="sticky-col">
+          <div class="card-custom p-3">
+            
+            <!-- HEADER PREVIEW & DATA AKTIF -->
+            <div class="d-flex justify-content-between align-items-center w-100 mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+              <h6 class="fw-bold text-uppercase text-light mb-0" style="font-size:0.8rem;">
+                <i class="fa-solid fa-eye text-info me-1"></i> Preview Real-Time
+              </h6>
+              <span class="target-badge" id="targetInfo"><i class="fa-solid fa-user me-1"></i> Belum Memilih Data</span>
+            </div>
+
+            <div class="row g-3">
+              <!-- KANVAS PREVIEW (KIRI) -->
+              <div class="col-md-5 d-flex flex-column align-items-center justify-content-start">
+                <canvas id="previewCanvas" width="673" height="1063"></canvas>
+              </div>
+
+              <!-- KONTROL BINGKAI, FOTO, & TOMBOL AKSI (KANAN) -->
+              <div class="col-md-7">
+                
+                <div class="step-header text-info mb-2" style="font-size:0.72rem;">
+                  <i class="fa-solid fa-sliders"></i> POSISI & UKURAN BINGKAI LINGKARAN & TEKS
+                </div>
+
+                <!-- PRESET, BENTUK, FOOTER -->
+                <div class="row g-2 mb-2">
+                  <div class="col-4">
+                    <label class="form-label small text-muted m-0" style="font-size:0.68rem;">Preset Layout</label>
+                    <select id="presetSelect" class="form-select form-select-sm" onchange="renderCard()">
+                      <option value="karyawan" selected>ID Card Karyawan</option>
+                      <option value="pelajar">ID Card Pelajar</option>
+                    </select>
+                  </div>
+                  <div class="col-4">
+                    <label class="form-label small text-info m-0" style="font-size:0.68rem;">Bentuk Masking</label>
+                    <select id="maskShapeSelect" class="form-select form-select-sm" onchange="updateMaskShape()">
+                      <option value="circle" selected>Circle (Lingkaran)</option>
+                      <option value="rounded">Rounded Square</option>
+                    </select>
+                  </div>
+                  <div class="col-4">
+                    <label class="form-label small text-muted m-0" style="font-size:0.68rem;">Teks Footer</label>
+                    <input type="text" id="footerInput" class="form-control form-control-sm" value="www.sekolahathalia.sch.id" oninput="renderCard()">
+                  </div>
+                </div>
+
+                <!-- BINGKAI LINGKARAN / MASKING CONTAINER (TERKUNCI SCALE) -->
+                <div class="p-2 rounded mb-2" style="background-color: rgba(6, 182, 212, 0.05); border: 1px dashed rgba(6, 182, 212, 0.3);">
+                  <small class="fw-bold text-info d-block mb-1" style="font-size:0.68rem;">
+                    <i class="fa-solid fa-circle-notch me-1"></i> BINGKAI LINGKARAN / MASKING CONTAINER (TERKUNCI)
+                  </small>
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <label class="form-label small text-muted m-0" style="font-size:0.68rem;">Ukuran Bingkai</label>
+                        <input type="number" id="maskSizeNum" class="form-control p-0 text-end input-preset-num" style="width:42px;" min="60" max="400" value="250" oninput="syncNumToSlider('maskSize', 'maskSizeNum')">
+                      </div>
+                      <input type="range" class="form-range" id="maskSize" min="60" max="400" value="250" oninput="syncSliderToNum('maskSize', 'maskSizeNum')">
+                    </div>
+                    <div class="col-6">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <label class="form-label small text-muted m-0" style="font-size:0.68rem;">Posisi Bingkai Y</label>
+                        <input type="number" id="maskYNum" class="form-control p-0 text-end input-preset-num" style="width:42px;" min="-150" max="220" value="0" oninput="syncNumToSlider('maskY', 'maskYNum')">
+                      </div>
+                      <input type="range" class="form-range" id="maskY" min="-150" max="220" value="0" oninput="syncSliderToNum('maskY', 'maskYNum')">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ISI FOTO DI DALAM BINGKAI (INDEPENDENT CONTROL) -->
+                <div class="p-2 rounded mb-2" style="background-color: rgba(59, 130, 246, 0.05); border: 1px dashed rgba(59, 130, 246, 0.3);">
+                  <small class="fw-bold text-primary d-block mb-1" style="font-size:0.68rem;">
+                    <i class="fa-solid fa-image me-1"></i> ISI FOTO DI DALAM LINGKARAN (LOCKED CIRCLE)
+                  </small>
+                  <div class="row g-2">
+                    <div class="col-4">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <label class="form-label small text-muted m-0" style="font-size:0.65rem;">Zoom / Skala</label>
+                        <input type="number" id="photoZoomNum" class="form-control p-0 text-end input-preset-num" style="width:38px;" min="30" max="300" value="100" oninput="syncNumToSlider('photoZoom', 'photoZoomNum')">
+                      </div>
+                      <input type="range" class="form-range" id="photoZoom" min="30" max="300" value="100" oninput="syncSliderToNum('photoZoom', 'photoZoomNum')">
+                    </div>
+                    <div class="col-4">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <label class="form-label small text-muted m-0" style="font-size:0.65rem;">Geser Foto X</label>
+                        <input type="number" id="photoXNum" class="form-control p-0 text-end input-preset-num" style="width:38px;" min="-150" max="150" value="0" oninput="syncNumToSlider('photoX', 'photoXNum')">
+                      </div>
+                      <input type="range" class="form-range" id="photoX" min="-150" max="150" value="0" oninput="syncSliderToNum('photoX', 'photoXNum')">
+                    </div>
+                    <div class="col-4">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <label class="form-label small text-muted m-0" style="font-size:0.65rem;">Geser Foto Y</label>
+                        <input type="number" id="photoYNum" class="form-control p-0 text-end input-preset-num" style="width:38px;" min="-150" max="150" value="0" oninput="syncNumToSlider('photoY', 'photoYNum')">
+                      </div>
+                      <input type="range" class="form-range" id="photoY" min="-150" max="150" value="0" oninput="syncSliderToNum('photoY', 'photoYNum')">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- POSISI TEKS Y -->
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <label class="form-label small text-muted m-0" style="font-size:0.68rem;">Posisi Teks Y</label>
+                    <input type="number" id="textYNum" class="form-control p-0 text-end input-preset-num" style="width:42px;" min="-50" max="320" value="0" oninput="syncNumToSlider('textY', 'textYNum')">
+                  </div>
+                  <input type="range" class="form-range" id="textY" min="-50" max="320" value="0" oninput="syncSliderToNum('textY', 'textYNum')">
+                </div>
+
+                <!-- TOMBOL UNDUH / AKSI -->
+                <div class="d-flex flex-column gap-2">
+                  <button class="btn-modern btn-modern-primary" onclick="downloadSingleCard()">
+                    <i class="fa-solid fa-download"></i> Unduh PNG
+                  </button>
+                  <button class="btn-modern" onclick="downloadZipBatch()">
+                    <i class="fa-solid fa-file-zipper text-info"></i> Unduh ZIP Batch
+                  </button>
+                  <button class="btn-modern btn-modern-danger" onclick="deleteCurrentPhoto()">
+                    <i class="fa-solid fa-trash"></i> Hapus Foto
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <canvas id="hiddenBarcodeCanvas" style="display:none;"></canvas>
+
+  <script>
+    let databaseData = [];
+    let selectedIndex = -1;
+    let templateImage = new Image();
+    let currentStream = null;
+
+    window.onload = function() {
+      createBlankTemplate();
+    };
+
+    function updateMaskShape() {
+      const shape = document.getElementById('maskShapeSelect').value;
+      const overlay = document.getElementById('cropOverlay');
+      overlay.className = `crop-overlay ${shape}`;
+      renderCard();
+    }
+
+    function syncSliderToNum(sliderId, numId) {
+      document.getElementById(numId).value = document.getElementById(sliderId).value;
+      renderCard();
+    }
+
+    function syncNumToSlider(sliderId, numId) {
+      const numInput = document.getElementById(numId);
+      const slider = document.getElementById(sliderId);
+      let val = parseInt(numInput.value);
+      
+      if (isNaN(val)) val = 0;
+      if (val < parseInt(slider.min)) val = parseInt(slider.min);
+      if (val > parseInt(slider.max)) val = parseInt(slider.max);
+      
+      slider.value = val;
+      renderCard();
+    }
+
+    function createBlankTemplate() {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = 673;
+      tempCanvas.height = 1063;
+      const tCtx = tempCanvas.getContext('2d');
+      tCtx.fillStyle = "#ffffff";
+      tCtx.fillRect(0, 0, 673, 1063);
+      templateImage.src = tempCanvas.toDataURL();
+      templateImage.onload = function() { renderCard(); };
+    }
+
+    function handleExcelUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[sheetName];
+          const rawData = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
+          
+          databaseData = rawData.map(item => {
+            const norm = {};
+            Object.keys(item).forEach(k => {
+              const cleanK = k.toString().toLowerCase().replace(/[^a-z0-9]/g, '');
+              norm[cleanK] = String(item[k]).trim();
+            });
+
+            const nisnVal = norm['npp'] || norm['nppnik'] || norm['nik'] || norm['nisn'] || norm['nis'] || norm['id'] || '';
+            const namaVal = norm['namalengkap'] || norm['nama'] || norm['namakaryawan'] || norm['namapegawai'] || '';
+            let unitVal = norm['unit'] || norm['unitkerja'] || norm['jabatan'] || norm['divisi'] || norm['departemen'] || norm['dept'] || norm['bagian'] || '';
+
+            if (!unitVal) {
+              const matchingKey = Object.keys(norm).find(k => k.includes('unit') || k.includes('dept') || k.includes('divisi'));
+              if (matchingKey) unitVal = norm[matchingKey];
+            }
+
+            const tempatLahirVal = norm['tempatlahir'] || norm['tmplahir'] || '';
+            const tglVal = norm['tanggallahir'] || norm['tgllahir'] || '';
+            const vaVal = String(norm['nova'] || norm['va'] || norm['virtualaccount'] || '').trim().replace(/,/g, '.');
+
+            return {
+              nisn: nisnVal,
+              nama: namaVal,
+              unit: unitVal,
+              tempatLahir: tempatLahirVal,
+              tglLahir: tglVal,
+              noVa: vaVal,
+              photo: null
+            };
+          });
+
+          renderDataList(databaseData);
+          if (databaseData.length > 0) selectDataItem(0);
+        } catch (err) {
+          alert("Gagal membaca file database: " + err.message);
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+
+    function renderDataList(list) {
+      const container = document.getElementById('dataListContainer');
+      container.innerHTML = '';
+
+      if (list.length === 0) {
+        container.innerHTML = '<div class="list-group-item data-item text-muted text-center py-3">Tidak ada data ditemukan.</div>';
+        return;
+      }
+
+      list.forEach((item) => {
+        const realIndex = databaseData.indexOf(item);
+        const el = document.createElement('div');
+        el.className = `list-group-item data-item d-flex justify-content-between align-items-center py-2 px-3 ${realIndex === selectedIndex ? 'active' : ''}`;
+        el.onclick = () => selectDataItem(realIndex);
+        
+        const badgeStatus = item.photo 
+          ? '<span class="badge bg-success-subtle text-success border border-success"><i class="fa-solid fa-check"></i> Foto</span>' 
+          : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Kosong</span>';
+        
+        el.innerHTML = `<div><strong class="text-info">'${item.nisn || '-'}</strong> — ${item.nama || 'Tanpa Nama'} ${item.unit ? `<small class="text-muted">(${item.unit})</small>` : ''}</div> ${badgeStatus}`;
+        container.appendChild(el);
+      });
+    }
+
+    function filterDataList() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = databaseData.filter(d => 
+        d.nama.toLowerCase().includes(query) || d.nisn.toString().toLowerCase().includes(query) || d.unit.toLowerCase().includes(query)
+      );
+      renderDataList(filtered);
+    }
+
+    function selectDataItem(idx) {
+      selectedIndex = idx;
+      filterDataList();
+      const current = databaseData[selectedIndex];
+      if (current) {
+        document.getElementById('targetInfo').innerHTML = `<i class="fa-solid fa-user-check me-1 text-success"></i> ${current.nama} ('${current.nisn})`;
+      }
+      renderCard();
+    }
+
+    function handleTemplateUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        templateImage = new Image();
+        templateImage.onload = () => renderCard();
+        templateImage.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function startCamera() {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        
+        const select = document.getElementById('cameraSelect');
+        select.innerHTML = '';
+        videoDevices.forEach((device, index) => {
+          const option = document.createElement('option');
+          option.value = device.deviceId;
+          option.text = device.label || `Kamera ${index + 1}`;
+          select.appendChild(option);
+        });
+
+        const constraints = {
+          video: { 
+            deviceId: select.value ? { exact: select.value } : undefined,
+            width: { ideal: 720 },
+            height: { ideal: 1280 }
+          }
+        };
+
+        if (currentStream) {
+          currentStream.getTracks().forEach(track => track.stop());
+        }
+
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        document.getElementById('videoElement').srcObject = currentStream;
+      } catch (err) {
+        alert("Gagal mengakses kamera: " + err.message);
+      }
+    }
+
+    function capturePhoto() {
+      if (selectedIndex < 0) {
+        alert("Pilih data anggota terlebih dahulu!");
+        return;
+      }
+      const video = document.getElementById('videoElement');
+      const canvas = document.createElement('canvas');
+      canvas.width = 400;
+      canvas.height = 400;
+      const ctx = canvas.getContext('2d');
+      
+      const minDim = Math.min(video.videoWidth, video.videoHeight);
+      const sx = (video.videoWidth - minDim) / 2;
+      const sy = (video.videoHeight - minDim) / 2;
+      ctx.drawImage(video, sx, sy, minDim, minDim, 0, 0, 400, 400);
+
+      databaseData[selectedIndex].photo = canvas.toDataURL('image/png');
+      filterDataList();
+      renderCard();
+    }
+
+    function handleSinglePhotoUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        if (selectedIndex >= 0 && databaseData[selectedIndex]) {
+          databaseData[selectedIndex].photo = evt.target.result;
+        } else {
+          databaseData[-1] = { photo: evt.target.result };
+        }
+        filterDataList();
+        renderCard();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleFolderUpload(e) {
+      const files = Array.from(e.target.files);
+      if (files.length === 0 || databaseData.length === 0) {
+        alert("Pastikan database Excel/CSV sudah diunggah terlebih dahulu!");
+        return;
+      }
+
+      files.forEach(file => {
+        const fileNameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')).toLowerCase();
+        const matchedItem = databaseData.find(d => 
+          d.nisn.toString().toLowerCase() === fileNameWithoutExt || 
+          d.nama.toLowerCase() === fileNameWithoutExt
+        );
+
+        if (matchedItem) {
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            matchedItem.photo = evt.target.result;
+            filterDataList();
+            if (databaseData[selectedIndex] === matchedItem) renderCard();
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    function deleteCurrentPhoto() {
+      if (selectedIndex >= 0 && databaseData[selectedIndex]) {
+        databaseData[selectedIndex].photo = null;
+        filterDataList();
+        renderCard();
+      }
+    }
+
+    /* FUNGSI PENARIKAN FOTO TERTRANSFORMASI DI DALAM MASKING TERKUNCI */
+    function drawTransformedImage(ctx, img, centerX, centerY, maskDim, zoomPercent, offsetX, offsetY) {
+      const zoom = zoomPercent / 100;
+      const imgAspect = img.width / img.height;
+      let baseW, baseH;
+
+      if (imgAspect > 1) {
+        baseH = maskDim;
+        baseW = maskDim * imgAspect;
+      } else {
+        baseW = maskDim;
+        baseH = maskDim / imgAspect;
+      }
+
+      const drawW = baseW * zoom;
+      const drawH = baseH * zoom;
+
+      // Geser X dan Geser Y bersifat relatif terhadap titik tengah bingkai
+      const drawX = (centerX - drawW / 2) + offsetX;
+      const drawY = (centerY - drawH / 2) + offsetY;
+
+      ctx.drawImage(img, drawX, drawY, drawW, drawH);
+    }
+
+    function renderCard() {
+      const canvas = document.getElementById('previewCanvas');
+      const ctx = canvas.getContext('2d');
+      const preset = document.getElementById('presetSelect').value;
+      const maskShape = document.getElementById('maskShapeSelect').value;
+
+      ctx.clearRect(0, 0, 673, 1063);
+      if (templateImage.complete && templateImage.naturalWidth > 0) {
+        ctx.drawImage(templateImage, 0, 0, 673, 1063);
+      } else {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, 673, 1063);
+      }
+
+      let activeData = databaseData[selectedIndex];
+      if (!activeData) {
+        activeData = {
+          nama: 'ARTATI PUSPITA HURA',
+          nisn: '00506.0726',
+          unit: 'PT - TK',
+          tempatLahir: 'Jakarta',
+          tglLahir: '15 Maret 1995',
+          noVa: '880.120.241.001',
+          photo: (databaseData[-1] && databaseData[-1].photo) ? databaseData[-1].photo : "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80"
+        };
+      }
+
+      const maskSize = parseFloat(document.getElementById('maskSize').value);
+      const maskY = parseFloat(document.getElementById('maskY').value);
+
+      const photoZoom = parseFloat(document.getElementById('photoZoom').value);
+      const photoX = parseFloat(document.getElementById('photoX').value);
+      const photoY = parseFloat(document.getElementById('photoY').value);
+      const textY = parseFloat(document.getElementById('textY').value);
+
+      const centerX = 336.5;
+      const centerY = 425 + maskY;
+      const radius = maskSize / 2;
+
+      // LOCKING CONTAINER BINGKAI (CIRCLE ATAU ROUNDED SQUARE)
+      ctx.save();
+      ctx.beginPath();
+
+      if (maskShape === 'circle') {
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      } else { // Rounded Square
+        const r = 24;
+        const x = centerX - radius;
+        const y = centerY - radius;
+        const w = maskSize;
+        const h = maskSize;
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+      }
+      ctx.closePath();
+
+      if (activeData.photo) {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = function() {
+          ctx.save();
+          ctx.clip(); // HANYA FOTO YANG DIPOTONG & DITRANSFORMASIKAN
+          drawTransformedImage(ctx, img, centerX, centerY, maskSize, photoZoom, photoX, photoY);
+          ctx.restore();
+
+          drawCardTextAndBarcode(ctx, activeData, preset, textY);
+        };
+        img.src = activeData.photo;
+      } else {
+        ctx.fillStyle = "#e2e8f0";
+        ctx.fill();
+        ctx.restore();
+        
+        drawCardTextAndBarcode(ctx, activeData, preset, textY);
+      }
+    }
+
+    function drawCardTextAndBarcode(ctx, data, preset, textYOffset) {
+      ctx.textAlign = "center";
+      const fontDinBold = "'DIN Bold', 'DIN-Bold', 'DINCondensed-Bold', 'DIN Condensed', 'Arial Narrow', sans-serif";
+
+      // Nama Lengkap
+      const namaText = (data.nama || 'NAMA PESERTA').toUpperCase();
+      ctx.save();
+      ctx.fillStyle = "#0f172a";
+      ctx.strokeStyle = "#0f172a";
+      ctx.lineWidth = 1.6;
+      ctx.font = `900 38px ${fontDinBold}`;
+      ctx.strokeText(namaText, 336.5, 595 + textYOffset);
+      ctx.fillText(namaText, 336.5, 595 + textYOffset);
+      ctx.restore();
+
+      // Detail Teks Data
+      ctx.font = `bold 24px ${fontDinBold}`;
+      ctx.fillStyle = "#64748b";
+
+      if (preset === 'karyawan') {
+        ctx.fillText(`NPP / NIK : ${data.nisn || '-'}`, 336.5, 635 + textYOffset);
+        ctx.fillText(`UNIT : ${data.unit ? data.unit.toUpperCase() : '-'}`, 336.5, 670 + textYOffset);
+      } else {
+        ctx.fillText(`NIS / NISN : ${data.nisn || '-'}`, 336.5, 635 + textYOffset);
+        let ttlStr = 'TTL : -';
+        if (data.tempatLahir && data.tglLahir) ttlStr = `TTL : ${data.tempatLahir}, ${data.tglLahir}`;
+        else if (data.tempatLahir) ttlStr = `TTL : ${data.tempatLahir}`;
+        else if (data.tglLahir) ttlStr = `TTL : ${data.tglLahir}`;
+        ctx.fillText(ttlStr, 336.5, 670 + textYOffset);
+
+        const cleanVa = data.noVa ? data.noVa.replace(/,/g, '.') : '-';
+        ctx.fillText(`NO. V.A. : ${cleanVa}`, 336.5, 705 + textYOffset);
+      }
+
+      // Barcode Generator
+      const barcodeCanvas = document.getElementById('hiddenBarcodeCanvas');
+      try {
+        const barcodeVal = data.nisn || '00506.0726';
+        JsBarcode(barcodeCanvas, barcodeVal.toString(), {
+          format: "CODE128",
+          width: 3,
+          height: 90,
+          displayValue: false
+        });
+
+        const bWidth = 460;
+        const bHeight = 100;
+        const bX = (673 - bWidth) / 2;
+        const bY = 885;
+        ctx.drawImage(barcodeCanvas, bX, bY, bWidth, bHeight);
+      } catch (err) {
+        console.warn("Error rendering barcode:", err);
+      }
+
+      // Teks Footer
+      const footerVal = document.getElementById('footerInput') ? document.getElementById('footerInput').value : '';
+      if (footerVal) {
+        ctx.save();
+        if ('letterSpacing' in ctx) ctx.letterSpacing = "3px";
+        ctx.font = `bold 16px ${fontDinBold}`;
+        ctx.fillStyle = "#64748b";
+        ctx.fillText(footerVal, 336.5, 1025);
+        ctx.restore();
+      }
+    }
+
+    function downloadSingleCard() {
+      const canvas = document.getElementById('previewCanvas');
+      const activeData = databaseData[selectedIndex];
+      const filename = activeData ? `ID_CARD_${activeData.nisn}_${activeData.nama}.png` : 'ID_CARD.png';
+      
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    async function downloadZipBatch() {
+      const completedItems = databaseData.filter(d => d.photo !== null);
+      if (completedItems.length === 0) {
+        alert("Belum ada foto yang dijepret/diunggah!");
+        return;
+      }
+
+      const zip = new JSZip();
+      const folder = zip.folder("ID_Cards_Hasil");
+
+      const offscreenCanvas = document.createElement('canvas');
+      offscreenCanvas.width = 673;
+      offscreenCanvas.height = 1063;
+      const offCtx = offscreenCanvas.getContext('2d');
+
+      const preset = document.getElementById('presetSelect').value;
+      const maskShape = document.getElementById('maskShapeSelect').value;
+      const maskSize = parseFloat(document.getElementById('maskSize').value);
+      const maskY = parseFloat(document.getElementById('maskY').value);
+
+      const photoZoom = parseFloat(document.getElementById('photoZoom').value);
+      const photoX = parseFloat(document.getElementById('photoX').value);
+      const photoY = parseFloat(document.getElementById('photoY').value);
+      const textY = parseFloat(document.getElementById('textY').value);
+
+      for (let item of completedItems) {
+        offCtx.clearRect(0, 0, 673, 1063);
+        if (templateImage.complete && templateImage.naturalWidth > 0) {
+          offCtx.drawImage(templateImage, 0, 0, 673, 1063);
+        } else {
+          offCtx.fillStyle = "#ffffff";
+          offCtx.fillRect(0, 0, 673, 1063);
+        }
+
+        await new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = function() {
+            offCtx.save();
+            const centerX = 336.5;
+            const centerY = 425 + maskY;
+            const radius = maskSize / 2;
+
+            offCtx.beginPath();
+            if (maskShape === 'circle') {
+              offCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            } else {
+              const r = 24;
+              const x = centerX - radius;
+              const y = centerY - radius;
+              offCtx.moveTo(x + r, y);
+              offCtx.arcTo(x + maskSize, y, x + maskSize, y + maskSize, r);
+              offCtx.arcTo(x + maskSize, y + maskSize, x, y + maskSize, r);
+              offCtx.arcTo(x, y + maskSize, x, y, r);
+              offCtx.arcTo(x, y, x + maskSize, y, r);
+            }
+            offCtx.closePath();
+            offCtx.clip();
+
+            drawTransformedImage(offCtx, img, centerX, centerY, maskSize, photoZoom, photoX, photoY);
+            offCtx.restore();
+
+            drawCardTextAndBarcode(offCtx, item, preset, textY);
+
+            const dataUrl = offscreenCanvas.toDataURL('image/png');
+            const base64Data = dataUrl.replace(/^data:image\/png;base64,/, "");
+            folder.file(`ID_CARD_${item.nisn}_${item.nama}.png`, base64Data, { base64: true });
+            resolve();
+          };
+          img.src = item.photo;
+        });
+      }
+
+      zip.generateAsync({ type: "blob" }).then(function(content) {
+        saveAs(content, "ID_Cards_Hasil_Selesai.zip");
+      });
+    }
+  </script>
+</body>
+</html>
